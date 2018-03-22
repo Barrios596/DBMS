@@ -1,9 +1,8 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class CreateDB {
 
-    public void  CreateDirectory(String name){
+    public void  CreateDirectory(String name) {
 
         File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + name );
 
@@ -15,6 +14,23 @@ public class CreateDB {
             True si el directorio fue creado, de lo contrario False
             */
             if (file.mkdir()) {
+                // Intenta Crear el archivo .txt de Metadata
+                CreateMetadata();
+
+                // Escribe en el archivo Metadata la nueva DB
+                try  {
+
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Jose Ramirez\\Downloads\\Test\\Metadata.txt"));
+                    writer.append(name + ',' + '0');
+                    writer.append('\n');
+                    writer.close();
+                }
+                catch (IOException e){
+                    e.printStackTrace();
+                }
+
+
+
                 System.out.println("El directorio fue creado");
             } else {
                 System.out.println(" El directorio no pudo ser creado");
@@ -29,7 +45,7 @@ public class CreateDB {
 
     public void CreateMetadata(){
         try {
-            File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\Metedata.txt");
+            File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\Metadata.txt");
 
             /*
             Metodo createNewFile devuelve un booleano
@@ -41,7 +57,6 @@ public class CreateDB {
             }
             else{
                 System.out.println("Ya existe un archivo Metadata");
-                // Se ha ingresa los valores de la DB a la MetaData
 
             }
         }
