@@ -448,6 +448,95 @@ public class Funciones {
 
         return mensaje;
     }
+    
+    
+    public String AlterModifyTable (String BDActual,String nombreTable, String Accion, String nombre){
+        String mensaje="";
+        Accion.toLowerCase();
+        String sDirectorio = "data\\"+BDActual+"\\"+nombreTable;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            switch (Accion){
+                case "addColumn":
+                    String nombreColumna="";
+                    String tipo="";
+                    return addColumn(tipo,nombreColumna,BDActual,nombreTable);
+
+
+
+            }
+        }
+
+        return mensaje;
+    }
+
+    public String addColumn (String tipo, String nombreColumna,String BDActual,String nombreTable ){
+        String mensaje="";
+
+
+        /*
+        Escribe en valores,txt la nueva columna y coloca null en todos sus valores
+         */
+
+        File input = new File("data\\"+BDActual+"\\"+nombreTable+"\\valores.txt");
+        File temp = new File("data\\"+BDActual+"\\"+nombreTable+"\\temporal.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current = br.readLine();
+            bw.write(current+ nombreColumna+System.getProperty("line.separator"));
+
+            while (current  != null ){
+                bw.write(current+ null +System.getProperty("line.separator"));
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+            mensaje=mensaje+ "\n Se actualizó la tabla"+nombreTable+" .";
+        }
+        catch (IOException e){
+            mensaje=mensaje+ "\n No se encontró la tabla "+nombreTable+" .";
+        }
+
+
+        /*
+        Escribe en metadata la nueva columna
+         */
+
+        File input1 = new File("data\\Metadata.txt");
+        File temp1 = new File("data\\temporal.txt");
+
+        try {
+            BufferedReader br1 = new BufferedReader(new FileReader(input1));
+            BufferedWriter bw1 = new BufferedWriter(new FileWriter(temp1));
+
+            String current;
+            while ((current = br1.readLine()) != null){
+                if(current.contains("PRIMARY KEY")){
+                    bw1.write(nombreColumna+" "+tipo+System.getProperty("line.separator"));
+                    bw1.write(current+System.getProperty("line.separator"));
+                }
+                bw1.write(current+System.getProperty("line.separator"));
+            }
+            br1.close();
+            bw1.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+            mensaje=mensaje+ "\n Se eliminó la tabla "+nombreTable+" en el archivo de metadata.";
+        }
+        catch (IOException e){
+            mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
+        }
+        
+        return mensaje;
+
+    }
+
 
 
 }
