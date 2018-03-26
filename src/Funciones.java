@@ -328,7 +328,7 @@ public class Funciones {
     /*
     Muestra los ficheros existentes en la Base de datos actual
      */
-    public static String showTable (String BDActual){
+    public String showTable (String BDActual){
         String mensaje="";
         String sDirectorio = "data\\"+BDActual;
         File f = new File(sDirectorio);
