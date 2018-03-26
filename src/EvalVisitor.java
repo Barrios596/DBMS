@@ -82,4 +82,14 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
         }
         return visitChildren(ctx);
     }
+
+    @Override public String visitAlterTable(GramaticaSQLParser.AlterTableContext ctx) {
+        if(ctx.getText().toLowerCase().contains("rename")){
+            String viejo = ctx.getChild(2).getText();
+            String nuevo = ctx.getChild(5).getText();
+
+            salida = salida+creador.RenameTable(viejo,nuevo,dbActual)+'\n';
+        }
+        return visitChildren(ctx);
+    }
 }

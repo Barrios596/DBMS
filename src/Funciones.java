@@ -377,7 +377,7 @@ public class Funciones {
 
     }
 
-    public String ModifyTable (String nameTable, String newNameTable, String ActualDB){
+    public String RenameTable (String nameTable, String newNameTable, String ActualDB){
 
         File file = new File("data\\" + ActualDB + "\\" + nameTable);
 
@@ -422,10 +422,9 @@ public class Funciones {
             e.printStackTrace();
         }
     }
-    
     /*
-    Muestra los ficheros existentes en la Base de datos actual
-     */
+        Muestra los ficheros existentes en la Base de datos actual
+         */
     public  String showTable (String BDActual){
         String mensaje="";
         String sDirectorio = "data\\"+BDActual;
@@ -452,3 +451,5 @@ public class Funciones {
 
 
 }
+
+
