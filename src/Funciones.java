@@ -352,6 +352,51 @@ public class Funciones {
         return mensaje;
     }
 
+    public String ModifyTable (String nameTable, String newNameTable, String ActualDB){
 
+        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\" + nameTable);
 
+        // Comprueba que la tabla exista dentro de la DB actual.
+        if (!file.exists()) {
+
+            // Mensaje para mostrar en consola y a usuario
+            String mensaje = "La tabla que desea modificar no existe.";
+            System.out.println(mensaje);
+            return mensaje;
+
+        } else{
+            // Renombra la tabla y el nombre de la tabla dentro de su archivo Metadata (Nombre de Tabla).txt
+            File filerename = new File ("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\" + newNameTable);
+            file.renameTo(filerename);
+            RenameTableMetadata(nameTable, newNameTable, ActualDB);
+
+            // Mensaje para mostrar en consola y a usuario
+            String mensaje = "El cambio de nombre se realizo con exito";
+            System.out.println(mensaje);
+            return mensaje;
+        }
+
+    }
+    public void RenameTableMetadata(String nameTable, String newNameTable, String ActualDB){
+        Path path = Paths.get("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\Metadata.txt");
+        Charset charset = StandardCharsets.UTF_8;
+
+        try{
+            /*
+            Se va a buscar dentro de contenido del archivo.
+            Si se encuentra el nombre de la tabla (nameTable), se realizara el remplazo a newNameTable.
+             */
+
+            String content = new String(Files.readAllBytes(path), charset);
+            content = content.replace(nameTable, newNameTable);
+            Files.write(path, content.getBytes(charset));
+
+        } catch(IOException e) {
+            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
+                    " en el archivo Metadata.txt correspondiente.");
+            e.printStackTrace();
+        }
+    }
+
+    
 }
