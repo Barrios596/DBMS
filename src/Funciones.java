@@ -248,6 +248,83 @@ public class Funciones {
         }
         return mensaje;
     }
+    
+    public String CreateTable(String name){
+        String mensaje = CreateDirectoryTable( BDActual, name);
+        return mensaje;
+
+
+    }
+
+    public String  CreateDirectoryTable(String BDActual, String name) {
+        String mensaje="";
+
+        File file = new File("data\\" +BDActual+"\\"+name );
+
+        // Comprueba si el directoria ya existe
+        if (!file.exists()) {
+
+            /*
+            Metodo mkdir devuelve un booleano
+            True si el directorio fue creado, de lo contrario False
+            */
+            if (file.mkdir()) {
+                // Intenta Crear el archivo .txt de Metadata
+                mensaje = CreateMetadataTabla(BDActual,name);
+
+                // Escribe en el archivo Metadata la nueva DB
+                try  {
+
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("data\\Metadata.txt",true));
+                    writer.append(name + ',' + '0');
+                    writer.newLine();
+                    writer.close();
+                }
+                catch (IOException e){
+                    e.printStackTrace();
+                }
+
+
+
+                System.out.println("La Tabla "+name+" fue creada.");
+                return mensaje +"\n La Tabla "+name+" fue creada.";
+            } else {
+                System.out.println(" El directorio no pudo ser creado");
+                return mensaje +"\n ERROR: La Tabla "+name+" no pudo ser creada.";
+
+            }
+        }
+        else {
+            System.out.println("El directorio o nombre de su Tabla ya existe");
+            return mensaje +"\n El directorio o nombre de su Tabla "+name+" ya existe.";
+
+        }
+    }
+
+    public String CreateMetadataTabla(String BDActual, String nombreTabla){
+        try {
+            File file = new File("data\\"+BDActual+"\\"+nombreTabla+"\\Metadata.txt");
+
+            /*
+            Metodo createNewFile devuelve un booleano
+            True si el archivo nombrado no existe y se creó correctamente, de lo contrario False
+            */
+
+            if (!file.exists()){
+                file.createNewFile();
+                return "El archivo de texto 'Metadata' fue creado correctamente";
+            }
+            else{
+                return"Ya existe un archivo Metadata";
+            }
+        }
+
+        catch (IOException e){
+            return "Ocurrió una excepción: No se pudo crear archivo Metadata o este no se pudo encontrar";
+
+        }
+    }
+
 
 
 }
