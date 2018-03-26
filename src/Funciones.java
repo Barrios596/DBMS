@@ -227,5 +227,27 @@ public class Funciones {
 
         return mensaje;
     }
+    
+    
+        /*
+        Verifica que exista la base de datos en el directorio principal.
+        Si existe, cambia la variable BDActual al nombre ingresado. 
+     */
+    public String UseDB(String nombreBD){
+        String mensaje ="";
+        String sDirectorio = "data\\"+nombreBD;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            BDActual= nombreBD;
+            mensaje="La base de datos actual es " +nombreBD;
+            
+        }
+        else {
+            mensaje="La base de datos "+nombreBD+" no existe";
+            
+        }
+        return mensaje;
+    }
+
 
 }
