@@ -30,6 +30,10 @@ public class Main {
                 parser.removeErrorListeners();
                 parser.addErrorListener(new DialogListener());
                 ParseTree arbol = parser.programa();
+                EvalVisitor visitor = new EvalVisitor();
+                visitor.visit(arbol);
+
+                textArea2.setText(visitor.salida);
 
                 JFrame frame = new JFrame("Antlr AST");
                 JPanel panel = new JPanel();
