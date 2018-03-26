@@ -422,6 +422,33 @@ public class Funciones {
             e.printStackTrace();
         }
     }
+    
+    /*
+    Muestra los ficheros existentes en la Base de datos actual
+     */
+    public  String showTable (String BDActual){
+        String mensaje="";
+        String sDirectorio = "data\\"+BDActual;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            mensaje=mensaje+"Las tablas actuales de la base de datos"+ BDActual+ "son: \n ";
+            File[] ficheros = f.listFiles();
+
+            if (ficheros.length==0){
+                mensaje="No existen tablas";
+                return mensaje;
+            }
+
+            for (int x=0;x<ficheros.length;x++){
+                mensaje= mensaje+ ficheros[x].getName() +"\n";
+            }
+        }
+        else{
+            mensaje="No existen tablas";
+        }
+
+        return mensaje;
+    }
 
 
 }
