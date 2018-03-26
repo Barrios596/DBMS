@@ -200,5 +200,32 @@ public class Funciones {
             System.out.println("El archivo fue eliminado: " + file.getAbsolutePath());
         }
     }
+    
+    /*
+        Muestra los documentos existentes en un fichero. Si no hay, devuelve mensaje de que no existen bases de datos
+    */
+    public String showDB (){
+        String mensaje="";
+        String sDirectorio = "C:\\Users\\JoiceAndrea\\Documents\\Joice Miranda\\7mo Semestre\\Progra";
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            mensaje=mensaje+"Las bases de datos actuales son: \n ";
+            File[] ficheros = f.listFiles();
+
+            if (ficheros.length==0){
+                mensaje="No existen bases de datos";
+                return mensaje;
+            }
+
+            for (int x=0;x<ficheros.length;x++){
+                mensaje= mensaje+ ficheros[x].getName() +"\n";
+            }
+        }
+        else{
+            mensaje="No existen bases de datos";
+        }
+
+        return mensaje;
+    }
 
 }
