@@ -1,7 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -133,7 +130,7 @@ public class Funciones {
         //make sure directory exists
         if(!directory.exists()){
 
-            String mensaje = "El directorio no existe.";
+            String mensaje = "El directorio "+nameDB+" no existe.";
             System.out.println(mensaje);
             return mensaje;
 
@@ -141,11 +138,11 @@ public class Funciones {
         }else{
             try{
                 Delete(directory);
-                String mensaje = "El directorio fue eliminado con exito.";
+                String mensaje = "El directorio "+nameDB+" fue eliminado con exito.\n"+ deleteDBMetadata(nameDB);;
                 return mensaje;
 
             }catch(IOException e){
-                String mensaje = "Se produjo un error al tratar de eliminar el directorio.";
+                String mensaje = "Se produjo un error al tratar de eliminar el directorio "+nameDB+".";
                 e.printStackTrace();
                 return mensaje;
             }
@@ -189,7 +186,7 @@ public class Funciones {
                 //check the directory again, if empty then delete it
                 if(file.list().length==0){
                     file.delete();
-                    System.out.println("El directorio fue eliminado: "
+                    System.out.println("El directorio "+file.getName()+" fue eliminado: "
                             + file.getAbsolutePath());
                 }
             }
@@ -200,13 +197,37 @@ public class Funciones {
             System.out.println("El archivo fue eliminado: " + file.getAbsolutePath());
         }
     }
-    
-    /*
-        Muestra los documentos existentes en un fichero. Si no hay, devuelve mensaje de que no existen bases de datos
-    */
+
+    public String deleteDBMetadata(String nameDB){
+        File input = new File("data\\Metadata.txt");
+        File temp = new File("data\\temporal.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null){
+                if(current.contains(nameDB)){
+                    continue;
+                }
+                bw.write(current+System.getProperty("line.separator"));
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+            return "Se eliminó la base de datos "+nameDB+" en el archivo de metadata.";
+        }
+        catch (IOException e){
+            return "No se encontró la base de datos "+nameDB+" en el archivo de metadata.";
+        }
+
+    }
     public String showDB (){
         String mensaje="";
-        String sDirectorio = "C:\\Users\\JoiceAndrea\\Documents\\Joice Miranda\\7mo Semestre\\Progra";
+        String sDirectorio = "data";
         File f = new File(sDirectorio);
         if (f.exists()){
             mensaje=mensaje+"Las bases de datos actuales son: \n ";
@@ -218,7 +239,9 @@ public class Funciones {
             }
 
             for (int x=0;x<ficheros.length;x++){
-                mensaje= mensaje+ ficheros[x].getName() +"\n";
+                if(!ficheros[x].getName().equals("Metadata.txt")) {
+                    mensaje = mensaje + ficheros[x].getName() + "\n";
+                }
             }
         }
         else{
@@ -227,33 +250,29 @@ public class Funciones {
 
         return mensaje;
     }
-    
-    
-        /*
-        Verifica que exista la base de datos en el directorio principal.
-        Si existe, cambia la variable BDActual al nombre ingresado. 
-     */
+
+
+    /*
+    Verifica que exista la base de datos en el directorio principal.
+    Si existe, cambia la variable BDActual al nombre ingresado.
+ */
     public String UseDB(String nombreBD){
         String mensaje ="";
         String sDirectorio = "data\\"+nombreBD;
         File f = new File(sDirectorio);
         if (f.exists()){
-            BDActual= nombreBD;
-            mensaje="La base de datos actual es " +nombreBD;
-            
+            mensaje="La base de datos actual es " +nombreBD+".";
         }
         else {
-            mensaje="La base de datos "+nombreBD+" no existe";
-            
+            mensaje="La base de datos "+nombreBD+" no existe.";
+
         }
         return mensaje;
     }
-    
-    public String CreateTable(String name){
+
+    public String CreateTable(String name,String BDActual){
         String mensaje = CreateDirectoryTable( BDActual, name);
         return mensaje;
-
-
     }
 
     public String  CreateDirectoryTable(String BDActual, String name) {
@@ -275,7 +294,7 @@ public class Funciones {
                 // Escribe en el archivo Metadata la nueva DB
                 try  {
 
-                    BufferedWriter writer = new BufferedWriter(new FileWriter("data\\Metadata.txt",true));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("data\\"+BDActual+"\\Metadata.txt",true));
                     writer.append(name + ',' + '0');
                     writer.newLine();
                     writer.close();
@@ -304,6 +323,7 @@ public class Funciones {
     public String CreateMetadataTabla(String BDActual, String nombreTabla){
         try {
             File file = new File("data\\"+BDActual+"\\"+nombreTabla+"\\Metadata.txt");
+            File file1 = new File("data\\"+BDActual+"\\"+nombreTabla+"\\valores.txt");
 
             /*
             Metodo createNewFile devuelve un booleano
@@ -312,6 +332,7 @@ public class Funciones {
 
             if (!file.exists()){
                 file.createNewFile();
+                file1.createNewFile();
                 return "El archivo de texto 'Metadata' fue creado correctamente";
             }
             else{
@@ -324,37 +345,41 @@ public class Funciones {
 
         }
     }
-    
-    /*
-    Muestra los ficheros existentes en la Base de datos actual
-     */
-    public String showTable (String BDActual){
-        String mensaje="";
-        String sDirectorio = "data\\"+BDActual;
-        File f = new File(sDirectorio);
-        if (f.exists()){
-            mensaje=mensaje+"Las tablas actuales de la base de datos"+ BDActual+ "son: \n ";
-            File[] ficheros = f.listFiles();
 
-            if (ficheros.length==0){
-                mensaje="No existen tablas";
-                return mensaje;
+    public void sumarTabla(String BDActual){
+        try {
+            File input = new File("data\\Metadata.txt");
+            File temp = new File("data\\copia.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter("data\\copia.txt"));
+            BufferedReader reader = new BufferedReader(new FileReader("data\\Metadata.txt"));
+            String current;
+            while ((current = reader.readLine()) != null){
+                if(current.contains(BDActual)){
+                    System.out.println(current);
+                    System.out.println(current.indexOf(','));
+                    String inicial = current.substring(0,current.indexOf(','));
+                    String indice = current.substring(current.indexOf(',')+1);
+                    int cantidad = Integer.parseInt(indice);
+                    cantidad++;
+                    indice=String.valueOf(cantidad);
+                    current=inicial+','+indice;
+                }
+                writer.write(current+System.getProperty("line.separator"));
             }
-
-            for (int x=0;x<ficheros.length;x++){
-                mensaje= mensaje+ ficheros[x].getName() +"\n";
-            }
+            reader.close();
+            writer.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+        }catch (IOException e){
+            System.out.println("No se encontró el archivo de metadata.");
         }
-        else{
-            mensaje="No existen tablas";
-        }
 
-        return mensaje;
     }
 
     public String ModifyTable (String nameTable, String newNameTable, String ActualDB){
 
-        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\" + nameTable);
+        File file = new File("data\\" + ActualDB + "\\" + nameTable);
 
         // Comprueba que la tabla exista dentro de la DB actual.
         if (!file.exists()) {
@@ -366,7 +391,7 @@ public class Funciones {
 
         } else{
             // Renombra la tabla y el nombre de la tabla dentro de su archivo Metadata (Nombre de Tabla).txt
-            File filerename = new File ("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\" + newNameTable);
+            File filerename = new File ("data\\" + ActualDB + "\\" + newNameTable);
             file.renameTo(filerename);
             RenameTableMetadata(nameTable, newNameTable, ActualDB);
 
@@ -378,7 +403,7 @@ public class Funciones {
 
     }
     public void RenameTableMetadata(String nameTable, String newNameTable, String ActualDB){
-        Path path = Paths.get("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + ActualDB + "\\Metadata.txt");
+        Path path = Paths.get("data\\" + ActualDB + "\\Metadata.txt");
         Charset charset = StandardCharsets.UTF_8;
 
         try{
@@ -398,5 +423,5 @@ public class Funciones {
         }
     }
 
-    
+
 }
