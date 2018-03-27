@@ -659,34 +659,7 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         return mensaje;
     }
     
-    /**
-     * author:Joice Miranda
-     * @param nombreTabla nombre de la tabla de donde queremos ver las columnas
-     * @param nombreBD nombre de la Base de Datos donde se encuentra la tabla
-     * @return un arreglo que contiene los nombres de las columnas
-     */
-    public String [] columnasExistentes (String nombreTabla, String nombreBD){
-        String [] columnas= new String[1];
-        /*
-        Eliminar de Valores toda la columna
-         */
-        File input = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\Metadata.txt");
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(input));
-
-            String current= br.readLine();
-            if (current!=null){
-                columnas=current.split(",");
-            }
-            br.close();
-        }
-        catch (IOException e){
-            columnas[0]="No hay elementos, ERROR";
-
-        }
-        return columnas;
-    }
-
+    
     /**
      * author: Joice Miranda
      * @param nombreTabla nombre de la tabla que contiene a las columnas
@@ -712,7 +685,6 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
                 }
             }
         }
-
         if (existe==false){
             return "Columnas ingresadas son inexistentes";
 
@@ -731,13 +703,10 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
             String current;
             while ((current = br.readLine()) != null){
-                if(current.contains("PRIMARY KEY")){
-                    bw.write(columnas+System.getProperty("line.separator"));
-                    while ((current = br.readLine()) != "FOREIGN KEY"){
-                    }
-
-                }
                 bw.write(current+System.getProperty("line.separator"));
+                if(current.contains("PRIMARY KEY")){
+                    bw.write(nombrePK+" "+columnas+System.getProperty("line.separator"));
+                }
             }
             br.close();
             bw.close();
