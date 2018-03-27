@@ -688,7 +688,7 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
     
     /**
-     * author: Joice Miranda
+     * @author: Joice Miranda
      * @param nombreTabla nombre de la tabla que contiene a las columnas
      * @param nombreBD nombre de la base de datos actual
      * @param nombrePK nombre de la Llave Primaria
@@ -747,6 +747,35 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         }
 
         return mensaje;
+    }
+    
+    /**
+     * @author Joice Miranda
+     * @param BDActual base de datos donde se encuentran las tablas
+     * @return arreglo con el nombre de las tablas que existen en BDActual
+     */
+    public ArrayList<String> showTable2 (String BDActual){
+        ArrayList<String> tablas = new ArrayList<String>();
+        String sDirectorio = "data\\"+BDActual;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            File[] ficheros = f.listFiles();
+
+            if (ficheros.length==0){
+                return tablas;
+            }
+
+            for (int x=0;x<ficheros.length;x++){
+                if (!String.valueOf(ficheros[x]).equals("Metadata.txt") ){
+                    tablas.add(String.valueOf(ficheros[x]));
+                } 
+            }
+        }
+        else{
+            return tablas;
+        }
+
+        return tablas;
     }
 }
 
