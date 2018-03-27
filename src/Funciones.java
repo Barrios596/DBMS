@@ -749,36 +749,12 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         return mensaje;
     }
     
-    /**
-     * @author Joice Miranda
-     * @param BDActual base de datos donde se encuentran las tablas
-     * @return arreglo con el nombre de las tablas que existen en BDActual
-     */
-    public ArrayList<String> showTable2 (String BDActual){
-        ArrayList<String> tablas = new ArrayList<String>();
-        String sDirectorio = "data\\"+BDActual;
-        File f = new File(sDirectorio);
-        if (f.exists()){
-            File[] ficheros = f.listFiles();
-
-            if (ficheros.length==0){
-                return tablas;
-            }
-
-            for (int x=0;x<ficheros.length;x++){
-                if (!String.valueOf(ficheros[x]).equals("Metadata.txt") ){
-                    tablas.add(String.valueOf(ficheros[x]));
-                } 
-            }
-        }
-        else{
-            return tablas;
-        }
-
-        return tablas;
-    }
     
-   /**
+    /*
+   Muestra los ficheros existentes en la Base de datos actual
+    */
+
+    /**
      * @author Joice Miranda
      * @param BDActual base de datos donde se encuentran las tablas
      * @return arreglo con el nombre de las tablas que existen en BDActual
@@ -816,28 +792,22 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
     public ArrayList<String> KFExistentes (String nombreBD ){
         ArrayList<String> archivos= showTable2(nombreBD);
         ArrayList<String> llaves = new ArrayList<String>();
-        for (int a=0; a<archivos.size();a++){
-            System.out.println(archivos.get(a));
-        }
 
         /*
         Recorre los archivos en buscar de las llaves foraneas
          */
         for (int i=0; i<archivos.size();i++){
             String nombreTabla=archivos.get(i);
-            System.out.println(nombreTabla);
             File input = new File(nombreTabla+"\\Metadata.txt");
             try {
                 BufferedReader br = new BufferedReader(new FileReader(input));
-                System.out.println("no entrooo");
                 String current;
                 while ((current = br.readLine()) != null ){
                     if(current.contains("FOREIGN KEY")){
-                        System.out.println("encontro el titulo");
                         while (!(current = br.readLine()).contains("CHECK")){
                             if (!llaves.contains(current)){
-                                System.out.println("Entra a agregar");
-                                llaves.add(current);
+                                String[] parts = current.split(",");
+                                llaves.add(parts[1]);
                             }
                         }
                     }
