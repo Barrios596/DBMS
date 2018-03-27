@@ -777,6 +777,78 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
         return tablas;
     }
+    
+    /*
+   Muestra los ficheros existentes en la Base de datos actual
+    */
+
+    /**
+     * @author Joice Miranda
+     * @param BDActual base de datos donde se encuentran las tablas
+     * @return arreglo con el nombre de las tablas que existen en BDActual
+     */
+    public ArrayList<String> showTable2 (String BDActual){
+        ArrayList<String> tablas = new ArrayList<String>();
+        String sDirectorio = "data\\"+BDActual;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            File[] ficheros = f.listFiles();
+
+            if (ficheros.length==0){
+                return tablas;
+            }
+
+            for (int x=0;x<ficheros.length;x++){
+                if (!String.valueOf(ficheros[x]).equals("Metadata.txt") ){
+                    tablas.add(String.valueOf(ficheros[x]));
+                }
+            }
+        }
+        else{
+            return tablas;
+        }
+
+        return tablas;
+    }
+
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos que quiere ser verificada
+     * @return las llaves foraneas de todas las tablas de nombreBD
+     */
+
+    public ArrayList<String> KFExistentes (String nombreBD ){
+        ArrayList<String> archivos= showTable2(nombreBD);
+        ArrayList<String> llaves = new ArrayList<String>();
+
+        /*
+        Recorre los archivos en buscar de las llaves foraneas
+         */
+        for (int i=0; i<archivos.size();i++){
+            String nombreTabla=archivos.get(i);
+            File input = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\Metadata.txt");
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(input));
+
+                String current;
+                while ((current = br.readLine()) != null ){
+                    if(current.contains("FOREIGN KEY")){
+                        while ((current = br.readLine()).contains("CHECK" )){
+                            if (!llaves.contains(current)){
+                                llaves.add(current);
+                            }
+                        }
+                    } 
+                }
+                br.close();
+            }
+            catch (IOException e){
+                return llaves;
+
+            }
+        }
+        return llaves;
+    }
 }
 
 
