@@ -101,27 +101,57 @@ public class Funciones {
         }
     }
 
-    public void RenameDBMetadata (String nameDB, String newNameDB){
+public void RenameDBMetadata (String nameDB, String newNameDB){
 
-        Path path = Paths.get("data\\Metadata.txt");
-        Charset charset = StandardCharsets.UTF_8;
+        // Se crea un objeto file y uno temporal
+        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\Metadata.txt");
+        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\temp.txt");
 
         try{
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+
             /*
-            Se va a buscar dentro de contenido del archivo.
-            Si se encuentra el nombre de la DB, se realizara el remplazo.
+            Se lee cada linea del archivo de texto
+            Y divide la linea actual en un array de Strings
              */
-            String content = new String(Files.readAllBytes(path), charset);
-            content = content.replace(nameDB, newNameDB);
-            Files.write(path, content.getBytes(charset));
+            while ((current = br.readLine()) != null){
+                String lineanueva = "";
+                String [] parts = current.split(",");
 
-        } catch(IOException e) {
-            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre de la DB" +
-                    " en el archivo Metadata.txt");
-            e.printStackTrace();
+                /*
+                Se recorre el arreglo y se compara con el nombre  de DB que se desea cambiar
+                Si se encuentra escribe sobre la linea el nuevo nombre
+                 */
+                for (int i = 0; i< parts.length;i++){
+                    if (parts[i].equals(nameDB)){
+                        lineanueva = lineanueva + newNameDB + ",";
+                    }else {
+                        lineanueva = lineanueva + parts[i] + ",";
+                    }
+                }
+                bw.write(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
+            }
 
+            br.close();
+            bw.close();
+
+            // Se sobrescribe el archivo Metadata.txt por el archivo temporal.
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+
+            String mensaje = "Se realizo el remplazo del nombre de la DB en el archivo Metadata.txt.";
+            System.out.println(mensaje);
+
+        }catch(IOException e){
+            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la DB " +
+                    " en el archivo Metadata.txt correspondiente.");
         }
     }
+
 
     public String DeleteDirectory(String nameDB){
 
