@@ -628,6 +628,100 @@ public class Funciones {
 
         return mensaje;
     }
+    
+    /**
+     * author:Joice Miranda
+     * @param nombreTabla nombre de la tabla de donde queremos ver las columnas
+     * @param nombreBD nombre de la Base de Datos donde se encuentra la tabla
+     * @return un arreglo que contiene los nombres de las columnas
+     */
+    public String [] columnasExistentes (String nombreTabla, String nombreBD){
+        String [] columnas= new String[1];
+        /*
+        Eliminar de Valores toda la columna
+         */
+        File input = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\Metadata.txt");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+
+            String current= br.readLine();
+            if (current!=null){
+                columnas=current.split(",");
+            }
+            br.close();
+        }
+        catch (IOException e){
+            columnas[0]="No hay elementos, ERROR";
+
+        }
+        return columnas;
+    }
+
+    /**
+     * author: Joice Miranda
+     * @param nombreTabla nombre de la tabla que contiene a las columnas
+     * @param nombreBD nombre de la base de datos actual
+     * @param nombrePK nombre de la Llave Primaria
+     * @param columnas nombre de las columnas que van a ser llaves primarias
+     * @return mensaje de exito o error de la accion
+     */
+
+    public String addPrimaryKey (String nombreTabla, String nombreBD, String nombrePK, String columnas) {
+        String mensaje = "";
+        boolean existe = false;
+        /*
+        Se revisan que existan las columnas ingresadas
+         */
+
+        String[] columnasReales = columnasExistentes(nombreTabla, nombreBD);
+        String[] columnasIngresadas = columnas.split(",");
+        for (int i = 0; i < columnasIngresadas.length; i++) {
+            for (int j = 0; j < columnasReales.length; j++) {
+                if (columnasIngresadas[i].equals(columnasReales[j])) {
+                    existe = true;
+                }
+            }
+        }
+
+        if (existe==false){
+            return "Columnas ingresadas son inexistentes";
+
+        }
+
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\Metadata.txt");
+        File temp = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null){
+                if(current.contains("PRIMARY KEY")){
+                    bw.write(columnas+System.getProperty("line.separator"));
+                    while ((current = br.readLine()) != "FOREIGN KEY"){
+                    }
+
+                }
+                bw.write(current+System.getProperty("line.separator"));
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            mensaje="La tabla"+nombreTabla+"ha sido actualizada";
+        }
+        catch (IOException e){
+            mensaje=" No se encontró la tabla"+nombreTabla+" en la base de datos"+ nombreBD;
+
+        }
+
+        return mensaje;
+    }
 }
 
 
