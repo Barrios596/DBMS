@@ -537,6 +537,98 @@ public class Funciones {
 
     }
 
+    
+    /**
+    @author Joice Miranda
+     @param BDActual es la base de datos que se esta usando actualmente
+     @param nombreColumna nombre de la columna que se quiere eliminar
+     @param nombreTable nombre de la tabla donde se encuentra la columna que se quiere elimar
+
+     */
+
+    public String DropColumn (String nombreColumna,String BDActual,String nombreTable ){
+        String mensaje="";
+
+        /*
+        Eliminar de Valores toda la columna
+         */
+        File input = new File("data\\"+BDActual+"\\"+nombreTable+"\\valores.txt");
+        File temp = new File("data\\"+BDActual+"\\"+nombreTable+"\\temporal.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current=br.readLine();
+            String[] parts = current.split(",");
+            int index=0;
+            String lineaNueva="";
+
+            for (int i=0; i<parts.length;i++){
+                if (parts[i].contains(nombreColumna)){
+                    index=i;
+                }
+                else{
+                    lineaNueva=lineaNueva+parts[i];
+                }
+            }
+
+            bw.write(lineaNueva+System.getProperty("line.separator"));
+
+            while ((current = br.readLine()) != null){
+                lineaNueva="";
+                for (int i=0; i<parts.length;i++){
+                    if (i!=index){
+                        lineaNueva=lineaNueva+parts[i];
+                    }
+                }
+
+                bw.write(current+System.getProperty("line.separator"));
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+            mensaje= "Se eliminó la columna "+nombreColumna+" de la BD"+ BDActual;
+        }
+        catch (IOException e){
+            mensaje= "Hubo un error al tratar de eliminar la columna "+nombreColumna+" de la Bd "+BDActual;
+        }
+
+
+        /*
+        Eliminar el nombre y tipo de la columna en Metadata
+         */
+
+        File input1 = new File("data\\"+BDActual+"\\"+nombreTable+"\\Metadata.txt");
+        File temp1 = new File("data\\"+BDActual+"\\"+nombreTable+"\\temporal1.txt");
+
+        try {
+            BufferedReader br1 = new BufferedReader(new FileReader(input1));
+            BufferedWriter bw1 = new BufferedWriter(new FileWriter(temp1));
+
+            String current;
+            while ((current = br1.readLine()) != null){
+                if(!current.contains(nombreColumna)){
+                    bw1.write(current+System.getProperty("line.separator"));
+                }
+
+            }
+            br1.close();
+            bw1.close();
+            Delete(input1);
+            boolean successful = temp.renameTo(input1);
+        }
+        catch (IOException e){
+            mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
+        }
+
+
+
+
+        return mensaje;
+    }
 
 
 }
