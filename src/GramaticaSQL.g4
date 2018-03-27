@@ -117,6 +117,7 @@ database:
 	|useDatabase 
 	|createTable
 	|alterTable
+	|alterModifyTable
 	|dropTable
 	|showTables
 	|showColumns
@@ -144,9 +145,9 @@ columna: IDX tipo;
 
 constraint: primaryKey | foreignKey | check;
 
-primaryKey: IDX PRIMARY KEY '(' IDX ')';
+primaryKey: IDX PRIMARY KEY '(' IDX (','IDX)* ')';
 
-foreignKey: IDX FOREIGN KEY '(' IDX ')' REFERENCES IDX '(' IDX ')' ;
+foreignKey: IDX FOREIGN KEY '(' IDX (','IDX)*')' REFERENCES IDX '(' IDX (','IDX)*')' ;
 
 check: IDX CHECK (exp);
 
@@ -170,10 +171,9 @@ rel:
 	
 notOp: (NOT)? '('(rel|cond)')';
 	
-	
+alterTable: ALTER TABLE IDX RENAME TO IDX ;
 
-	
-alterTable: ALTER TABLE IDX RENAME TO IDX | ALTER TABLE IDX action (',' action)* ;
+alterModifyTable: ALTER TABLE IDX action (',' action)* ;
 
 action: 
 	addColumn | 

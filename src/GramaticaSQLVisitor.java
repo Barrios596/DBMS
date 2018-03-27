@@ -166,6 +166,12 @@ public interface GramaticaSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAlterTable(GramaticaSQLParser.AlterTableContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link GramaticaSQLParser#alterModifyTable}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAlterModifyTable(GramaticaSQLParser.AlterModifyTableContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link GramaticaSQLParser#action}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

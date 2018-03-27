@@ -44,6 +44,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
 
     @Override public String visitCreateTable(GramaticaSQLParser.CreateTableContext ctx) {
         if(!dbActual.equals("")) {
+            boolean primarykey = false;
+            boolean foreignkey = false;
+            boolean check = false;
             String nombre = ctx.getChild(2).getText();
             salida=salida+creador.CreateTable(nombre,dbActual)+'\n';
             try {
@@ -59,7 +62,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                 writer.write(cNombre+" "+cTipo);
                 writer.newLine();
                 String valores = cNombre;
-                while (!ctx.getChild(contador+1).getText().toLowerCase().equals("constraint") && !ctx.getChild(contador+1).getText().equals(")")){
+                while (!ctx.getChild(contador+2).getText().toLowerCase().equals("constraint") && !ctx.getChild(contador+1).getText().equals(")")){
                     contador=contador+2;
                     cNombre = ctx.getChild(contador).getChild(0).getText();
                     cTipo = ctx.getChild(contador).getChild(1).getText();
@@ -67,6 +70,57 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                     writer.write(cNombre+" "+cTipo);
                     writer.newLine();
                     valores=valores+","+cNombre;
+                }
+                while (!ctx.getChild(contador+1).getText().equals(")")){
+                    contador=contador+3;
+                    if(ctx.getChild(contador).getText().toLowerCase().contains("primary")){
+                        primarykey=true;
+                        writer.write("PRIMARY KEY");
+                        writer.newLine();
+                        String key = ctx.getChild(contador).getChild(0).getChild(0).getText();
+                        writer.write(key+" ");
+                        int contador2=4;
+                        String param = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                        writer.write(param);
+                        while (!ctx.getChild(contador).getChild(0).getChild(contador2+1).getText().contains(")")){
+                            contador2=contador2+2;
+                            param = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                            writer.write(","+param);
+                        }
+                        writer.newLine();
+                    }
+                    else if(ctx.getChild(contador).getText().toLowerCase().contains("foreign")){
+                        writer.write("FOREIGN KEY");
+                        foreignkey=true;
+                        writer.newLine();
+                        String name = ctx.getChild(contador).getChild(0).getChild(0).getText();
+                        writer.write(name+" ");
+                        int contador2=4;
+                        String columna = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                        writer.write(columna);
+                        while (!ctx.getChild(contador).getChild(0).getChild(contador2+1).getText().contains(")")){
+                            contador2=contador2+2;
+                            columna = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                            writer.write(","+columna);
+                        }
+                        contador2=contador2+3;
+                        String tabla = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                        writer.write(" REFERENCES "+tabla+" ");
+                        contador2=contador2+2;
+                        writer.newLine();
+                    }
+                }
+                if(!primarykey){
+                    writer.write("PRIMARY KEY");
+                    writer.newLine();
+                }
+                if(!foreignkey){
+                    writer.write("FOREIGN KEY");
+                    writer.newLine();
+                }
+                if(!check){
+                    writer.write("CHECK");
+                    writer.newLine();
                 }
                 writer.close();
                 escritor.write(valores);
@@ -89,6 +143,26 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             String nuevo = ctx.getChild(5).getText();
 
             salida = salida+creador.RenameTable(viejo,nuevo,dbActual)+'\n';
+        }
+        return visitChildren(ctx);
+    }
+
+    @Override public String visitAlterModifyTable(GramaticaSQLParser.AlterModifyTableContext ctx) {
+
+        String tabla = ctx.getChild(2).getText();
+        String accion1 = ctx.getChild(3).getChild(0).getChild(0).getText();
+        String accion2 = ctx.getChild(3).getChild(0).getChild(1).getText();
+        String accion = accion1+" "+accion2;
+        System.out.println(accion);
+        if(accion.toLowerCase().contains("add column")){
+            String nombre = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getText();
+            String tipo = ctx.getChild(3).getChild(0).getChild(2).getChild(1).getText();
+            salida=salida+creador.addColumn(tipo,nombre,dbActual,tabla);
+        }
+        else if(accion.toLowerCase().contains("drop column")){
+            String columna = ctx.getChild(3).getChild(0).getChild(2).getText();
+            System.out.println(columna);
+            salida=salida+creador.DropColumn(columna,dbActual,tabla);
         }
         return visitChildren(ctx);
     }

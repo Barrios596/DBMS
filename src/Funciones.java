@@ -396,7 +396,7 @@ public class Funciones {
             RenameTableMetadata(nameTable, newNameTable, ActualDB);
 
             // Mensaje para mostrar en consola y a usuario
-            String mensaje = "El cambio de nombre se realizo con exito";
+            String mensaje = "El cambio de nombre de "+nameTable+" a "+newNameTable+" se realizo con exito";
             System.out.println(mensaje);
             return mensaje;
         }
@@ -448,8 +448,8 @@ public class Funciones {
 
         return mensaje;
     }
-    
-    
+
+
     public String AlterModifyTable (String BDActual,String nombreTable, String Accion, String nombre){
         String mensaje="";
         Accion.toLowerCase();
@@ -461,9 +461,6 @@ public class Funciones {
                     String nombreColumna="";
                     String tipo="";
                     return addColumn(tipo,nombreColumna,BDActual,nombreTable);
-
-
-
             }
         }
 
@@ -486,17 +483,16 @@ public class Funciones {
             BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
 
             String current = br.readLine();
-            bw.write(current+ nombreColumna+System.getProperty("line.separator"));
+            bw.write(current+','+ nombreColumna+System.getProperty("line.separator"));
 
-            while (current  != null ){
-                bw.write(current+ null +System.getProperty("line.separator"));
+            while ((current=br.readLine())  != null ){
+                bw.write(current+","+ null +System.getProperty("line.separator"));
             }
             br.close();
             bw.close();
             Delete(input);
             boolean successful = temp.renameTo(input);
-            System.out.println(successful);
-            mensaje=mensaje+ "\n Se actualizó la tabla"+nombreTable+" .";
+            mensaje=mensaje+ "\n Se actualizó la tabla "+nombreTable+" .";
         }
         catch (IOException e){
             mensaje=mensaje+ "\n No se encontró la tabla "+nombreTable+" .";
@@ -507,8 +503,8 @@ public class Funciones {
         Escribe en metadata la nueva columna
          */
 
-        File input1 = new File("data\\Metadata.txt");
-        File temp1 = new File("data\\temporal.txt");
+        File input1 = new File("data\\"+BDActual+"\\"+nombreTable+"\\Metadata.txt");
+        File temp1 = new File("data\\"+BDActual+"\\"+nombreTable+"\\temporal.txt");
 
         try {
             BufferedReader br1 = new BufferedReader(new FileReader(input1));
@@ -518,32 +514,26 @@ public class Funciones {
             while ((current = br1.readLine()) != null){
                 if(current.contains("PRIMARY KEY")){
                     bw1.write(nombreColumna+" "+tipo+System.getProperty("line.separator"));
-                    bw1.write(current+System.getProperty("line.separator"));
                 }
                 bw1.write(current+System.getProperty("line.separator"));
             }
             br1.close();
             bw1.close();
-            Delete(input);
-            boolean successful = temp.renameTo(input);
-            System.out.println(successful);
-            mensaje=mensaje+ "\n Se eliminó la tabla "+nombreTable+" en el archivo de metadata.";
+            Delete(input1);
+            boolean successful = temp1.renameTo(input1);
         }
         catch (IOException e){
             mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
         }
-        
+
         return mensaje;
 
     }
-
-    
     /**
-    @author Joice Miranda
+     @author Joice Miranda
      @param BDActual es la base de datos que se esta usando actualmente
      @param nombreColumna nombre de la columna que se quiere eliminar
      @param nombreTable nombre de la tabla donde se encuentra la columna que se quiere elimar
-
      */
 
     public String DropColumn (String nombreColumna,String BDActual,String nombreTable ){
@@ -562,34 +552,42 @@ public class Funciones {
             String current=br.readLine();
             String[] parts = current.split(",");
             int index=0;
+            boolean encontrado = false;
             String lineaNueva="";
 
             for (int i=0; i<parts.length;i++){
                 if (parts[i].contains(nombreColumna)){
                     index=i;
+                    encontrado=true;
                 }
                 else{
-                    lineaNueva=lineaNueva+parts[i];
+                    lineaNueva=lineaNueva+parts[i]+",";
                 }
             }
 
-            bw.write(lineaNueva+System.getProperty("line.separator"));
+            bw.write(lineaNueva.substring(0,lineaNueva.length()-1)+System.getProperty("line.separator"));
 
             while ((current = br.readLine()) != null){
                 lineaNueva="";
+                parts = current.split(",");
+
                 for (int i=0; i<parts.length;i++){
-                    if (i!=index){
-                        lineaNueva=lineaNueva+parts[i];
+                    //System.out.println("el i es "+i+" el index es "+index);
+                    if (i!=index || !encontrado){
+                        lineaNueva=lineaNueva+parts[i]+",";
                     }
                 }
 
-                bw.write(current+System.getProperty("line.separator"));
+                bw.write(lineaNueva.substring(0,lineaNueva.length()-1)+System.getProperty("line.separator"));
             }
             br.close();
             bw.close();
             Delete(input);
             boolean successful = temp.renameTo(input);
             System.out.println(successful);
+            if(!encontrado){
+                return "La columna "+nombreColumna+" no existe en la BD "+BDActual;
+            }
             mensaje= "Se eliminó la columna "+nombreColumna+" de la BD"+ BDActual;
         }
         catch (IOException e){
@@ -611,6 +609,7 @@ public class Funciones {
             String current;
             while ((current = br1.readLine()) != null){
                 if(!current.contains(nombreColumna)){
+                    System.out.println(current);
                     bw1.write(current+System.getProperty("line.separator"));
                 }
 
@@ -618,7 +617,7 @@ public class Funciones {
             br1.close();
             bw1.close();
             Delete(input1);
-            boolean successful = temp.renameTo(input1);
+            boolean successful = temp1.renameTo(input1);
         }
         catch (IOException e){
             mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
@@ -629,8 +628,6 @@ public class Funciones {
 
         return mensaje;
     }
-
-
 }
 
 
