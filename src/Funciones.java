@@ -658,7 +658,34 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
         return mensaje;
     }
-    
+    /**
+     * author:Joice Miranda
+     * @param nombreTabla nombre de la tabla de donde queremos ver las columnas
+     * @param nombreBD nombre de la Base de Datos donde se encuentra la tabla
+     * @return un arreglo que contiene los nombres de las columnas
+     */
+    public String [] columnasExistentes (String nombreTabla, String nombreBD){
+        String [] columnas= new String[1];
+        /*
+        Eliminar de Valores toda la columna
+         */
+        File input = new File("data\\"+nombreBD+"\\"+nombreTabla+"\\Valores.txt");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+
+            String current= br.readLine();
+            if (current!=null){
+                columnas=current.split(",");
+            }
+            br.close();
+        }
+        catch (IOException e){
+            columnas[0]="No hay elementos, ERROR";
+
+        }
+        return columnas;
+    }
+
     
     /**
      * author: Joice Miranda
