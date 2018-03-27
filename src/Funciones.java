@@ -424,6 +424,10 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
             File filerename = new File ("data\\" + ActualDB + "\\" + newNameTable);
             file.renameTo(filerename);
             RenameTableMetadata(nameTable, newNameTable, ActualDB);
+            
+            // Renombra el nombre de la tabla, en otros Metadata.txt de otras tablas.
+            RenameTableOtherTableMetadata(nameTable, newNameTable, actualDB);
+
 
             // Mensaje para mostrar en consola y a usuario
             String mensaje = "El cambio de nombre de "+nameTable+" a "+newNameTable+" se realizo con exito";
@@ -433,50 +437,53 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
     }
     public void RenameTableMetadata(String nameTable, String newNameTable, String ActualDB){
-        Path path = Paths.get("data\\" + ActualDB + "\\Metadata.txt");
-        Charset charset = StandardCharsets.UTF_8;
+                // Se crea un objeto file y uno temporal
+        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\Metadata.txt");
+        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\temp.txt");
 
         try{
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+
             /*
-            Se va a buscar dentro de contenido del archivo.
-            Si se encuentra el nombre de la tabla (nameTable), se realizara el remplazo a newNameTable.
+            Se lee cada linea del archivo de texto
+            Y divide la linea actual en un array de Strings
              */
+            while ((current = br.readLine()) != null){
+                String lineanueva = "";
+                String [] parts = current.split(",");
 
-            String content = new String(Files.readAllBytes(path), charset);
-            content = content.replace(nameTable, newNameTable);
-            Files.write(path, content.getBytes(charset));
+                /*
+                Se recorre el arreglo y se compara con el nombre  de DB que se desea cambiar
+                Si se encuentra escribe sobre la linea el nuevo nombre
+                 */
+                for (int i = 0; i< parts.length;i++){
+                    if (parts[i].equals(nameTable)){
+                        lineanueva = lineanueva + newNameTable + ",";
+                    }else {
+                        lineanueva = lineanueva + parts[i] + ",";
+                    }
+                }
+                bw.write(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
+            }
 
-        } catch(IOException e) {
+            br.close();
+            bw.close();
+
+            // Se sobrescribe el archivo Metadata.txt por el archivo temporal.
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+
+            String mensaje = "Se realizo el remplazo del nombre de la tabla en el archivo Metadata.txt.";
+            System.out.println(mensaje);
+
+        }catch(IOException e){
             System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
                     " en el archivo Metadata.txt correspondiente.");
-            e.printStackTrace();
-        }
-    }
-    /*
-        Muestra los ficheros existentes en la Base de datos actual
-         */
-    public  String showTable (String BDActual){
-        String mensaje="";
-        String sDirectorio = "data\\"+BDActual;
-        File f = new File(sDirectorio);
-        if (f.exists()){
-            mensaje=mensaje+"Las tablas actuales de la base de datos"+ BDActual+ "son: \n ";
-            File[] ficheros = f.listFiles();
-
-            if (ficheros.length==0){
-                mensaje="No existen tablas";
-                return mensaje;
-            }
-
-            for (int x=0;x<ficheros.length;x++){
-                mensaje= mensaje+ ficheros[x].getName() +"\n";
-            }
-        }
-        else{
-            mensaje="No existen tablas";
-        }
-
-        return mensaje;
+        }   
     }
 
 
@@ -820,6 +827,85 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
             }
         }
         return llaves;
+    }
+    
+    
+        public void RenameTableOtherTableMetadata (String nameTable, String newNameTable, String actualDB){
+
+        // Se llaman a todas las tablas existentes de esa DB
+        ArrayList<String> tablas = showTable2(actualDB);
+
+        // Si existen tablas dentro de esa DB ...
+        if(!tablas.isEmpty()){
+
+            // Se obtienen todos los Metadata.txt para cada una de las tablas en la DB
+            for (int i=0; i<tablas.size(); i++ ){
+
+                // Se crea un objeto file y uno temporal
+                File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + tablas.get(i) + "\\Metadata.txt");
+                File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + tablas.get(i) +  "\\temp.txt");
+
+                try{
+                    BufferedReader br = new BufferedReader(new FileReader(input));
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+                    String current;
+
+                    // Para el archivo Metadata.txt actual. Se recorren todas las lineas
+                    while ((current = br.readLine()) != null){
+                        String lineanueva = "";
+
+                        // Si la linea es FOREIGN KEY ...
+                        if(current.contains("FOREIGN KEY")) {
+
+                            // Se obtienen las lineas siguientes mientras la linea no contenga a CHECK.
+                            while (!(current = br.readLine()).contains("CHECK")){
+                                // Se obtienen todas las palabras de de esa linea
+                                String [] palabras = current.split(",");
+
+                                /*
+                                Si la palabra que guarda las tablas es igual a la que se desea renombrar
+                                esta se renombra por la variable newNameTable.
+                                */
+
+                                if(palabras[1].equals(nameTable)){
+                                    palabras[1] = newNameTable;
+
+                                    // Se reconstruye la linea
+                                    for (int j = 0; j< palabras.length;j++){
+                                        lineanueva = lineanueva + palabras[j] + ",";
+
+                                    }
+                                    bw.write(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
+
+                                }
+                                bw.write(current + System.getProperty("line.separator"));
+                            }
+                        }else{
+                            bw.write(current + System.getProperty("line.separator"));
+
+                        }
+
+                        bw.write(current + System.getProperty("line.separator"));
+                   }
+
+                    br.close();
+                    bw.close();
+
+                    // Se sobrescribe el archivo Metadata.txt por el archivo temporal.
+                    Delete(input);
+                    boolean successful = temp.renameTo(input);
+                    System.out.println(successful);
+
+                    String mensaje = "Se realizo el remplazo del nombre de la tabla en el archivo Metadata.txt.";
+                    System.out.println(mensaje);
+
+                }catch(IOException e){
+                    System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
+                            " en el archivo Metadata.txt correspondiente.");
+                }
+            }
+        }
     }
 }
 
