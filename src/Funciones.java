@@ -143,7 +143,7 @@ public class Funciones {
                 return mensaje;
 
             }catch(IOException e){
-                String mensaje = "Se produjo un error al tratar de eliminar el directorio "+nameDB+".";
+                String mensaje = "ERROR: Se produjo un error al tratar de eliminar el directorio "+nameDB+".";
                 e.printStackTrace();
                 return mensaje;
             }
@@ -222,7 +222,7 @@ public class Funciones {
             return "Se eliminó la base de datos "+nameDB+" en el archivo de metadata.";
         }
         catch (IOException e){
-            return "No se encontró la base de datos "+nameDB+" en el archivo de metadata.";
+            return "ERROR: No se encontró la base de datos "+nameDB+" en el archivo de metadata.";
         }
 
     }
@@ -235,7 +235,7 @@ public class Funciones {
             File[] ficheros = f.listFiles();
 
             if (ficheros.length==0){
-                mensaje="No existen bases de datos";
+                mensaje="ERROR: No existen bases de datos";
                 return mensaje;
             }
 
@@ -246,7 +246,7 @@ public class Funciones {
             }
         }
         else{
-            mensaje="No existen bases de datos";
+            mensaje="ERROR: No existen bases de datos";
         }
 
         return mensaje;
@@ -265,7 +265,7 @@ public class Funciones {
             mensaje="La base de datos actual es " +nombreBD+".";
         }
         else {
-            mensaje="La base de datos "+nombreBD+" no existe.";
+            mensaje="ERROR: La base de datos "+nombreBD+" no existe.";
 
         }
         return mensaje;
@@ -315,8 +315,8 @@ public class Funciones {
             }
         }
         else {
-            System.out.println("El directorio o nombre de su Tabla ya existe");
-            return mensaje +"\n El directorio o nombre de su Tabla "+name+" ya existe.";
+            System.out.println("ERROR: El directorio o nombre de su Tabla ya existe");
+            return mensaje +"\n ERROR: El directorio o nombre de su Tabla "+name+" ya existe.";
 
         }
     }
@@ -337,12 +337,12 @@ public class Funciones {
                 return "El archivo de texto 'Metadata' fue creado correctamente";
             }
             else{
-                return"Ya existe un archivo Metadata";
+                return"ERROR: Ya existe un archivo Metadata";
             }
         }
 
         catch (IOException e){
-            return "Ocurrió una excepción: No se pudo crear archivo Metadata o este no se pudo encontrar";
+            return "ERROR: Ocurrió una excepción: No se pudo crear archivo Metadata o este no se pudo encontrar";
 
         }
     }
@@ -373,7 +373,7 @@ public class Funciones {
             boolean successful = temp.renameTo(input);
             System.out.println(successful);
         }catch (IOException e){
-            System.out.println("No se encontró el archivo de metadata.");
+            System.out.println("ERROR: No se encontró el archivo de metadata.");
         }
 
     }
@@ -386,7 +386,7 @@ public class Funciones {
         if (!file.exists()) {
 
             // Mensaje para mostrar en consola y a usuario
-            String mensaje = "La tabla que desea modificar no existe.";
+            String mensaje = "ERROR: La tabla que desea modificar no existe.";
             System.out.println(mensaje);
             return mensaje;
 
@@ -452,7 +452,7 @@ public class Funciones {
             System.out.println(mensaje);
 
         }catch(IOException e){
-            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
+            System.out.println("ERROR: Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
                     " en el archivo Metadata.txt correspondiente.");
         }
     }
@@ -469,7 +469,7 @@ public class Funciones {
             File[] ficheros = f.listFiles();
 
             if (ficheros.length==0){
-                mensaje="No existen tablas";
+                mensaje="ERROR: No existen tablas";
                 return mensaje;
             }
 
@@ -478,7 +478,7 @@ public class Funciones {
             }
         }
         else{
-            mensaje="No existen tablas";
+            mensaje="ERROR: No existen tablas";
         }
 
         return mensaje;
@@ -530,7 +530,7 @@ public class Funciones {
             mensaje=mensaje+ "\n Se actualizó la tabla "+nombreTable+" .";
         }
         catch (IOException e){
-            mensaje=mensaje+ "\n No se encontró la tabla "+nombreTable+" .";
+            mensaje=mensaje+ "\n ERROR: No se encontró la tabla "+nombreTable+" .";
         }
 
 
@@ -558,7 +558,7 @@ public class Funciones {
             boolean successful = temp1.renameTo(input1);
         }
         catch (IOException e){
-            mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
+            mensaje=mensaje+ "\n ERROR: No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
         }
 
         return mensaje;
@@ -621,12 +621,12 @@ public class Funciones {
             boolean successful = temp.renameTo(input);
             System.out.println(successful);
             if(!encontrado){
-                return "La columna "+nombreColumna+" no existe en la BD "+BDActual;
+                return "ERROR: La columna "+nombreColumna+" no existe en la BD "+BDActual;
             }
             mensaje= "Se eliminó la columna "+nombreColumna+" de la BD"+ BDActual;
         }
         catch (IOException e){
-            mensaje= "Hubo un error al tratar de eliminar la columna "+nombreColumna+" de la Bd "+BDActual;
+            mensaje= "ERROR: Hubo un error al tratar de eliminar la columna "+nombreColumna+" de la Bd "+BDActual;
         }
 
 
@@ -655,7 +655,7 @@ public class Funciones {
             boolean successful = temp1.renameTo(input1);
         }
         catch (IOException e){
-            mensaje=mensaje+ "\n No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
+            mensaje=mensaje+ "\n ERROR: No se encontró la tabla"+nombreTable+" en el archivo de metadata.";
         }
 
 
@@ -686,7 +686,7 @@ public class Funciones {
             br.close();
         }
         catch (IOException e){
-            columnas[0]="No hay elementos, ERROR";
+            columnas[0]="ERROR: No hay elementos.";
 
         }
         return columnas;
@@ -719,7 +719,6 @@ public class Funciones {
         }
         if (existe==false){
             return "Columnas ingresadas son inexistentes";
-
         }
 
         /*
@@ -754,7 +753,7 @@ public class Funciones {
             mensaje="La tabla "+nombreTabla+" ha sido actualizada";
         }
         catch (IOException e){
-            mensaje=" No se encontró la tabla"+nombreTabla+" en la base de datos"+ nombreBD;
+            mensaje="ERROR: No se encontró la tabla "+nombreTabla+" en la base de datos "+ nombreBD;
 
         }
 
@@ -902,7 +901,7 @@ public class Funciones {
                     System.out.println(mensaje);
 
                 }catch(IOException e){
-                    System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
+                    System.out.println("ERROR: Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
                             " en el archivo Metadata.txt correspondiente.");
                 }
             }
@@ -933,7 +932,7 @@ public class Funciones {
             }
         }
             if (existe == false) {
-                return "Columna ingresadas no existen en la tabla " + nombreTablaExterna;
+                return "ERROR: Columna ingresadas no existen en la tabla " + nombreTablaExterna;
 
             }
 
@@ -961,38 +960,13 @@ public class Funciones {
                 boolean successful = temp.renameTo(input);
                 mensaje = "La tabla " + nombreTablaActual + " ha sido actualizada";
             } catch (IOException e) {
-                mensaje = "No se encontró la tabla " + nombreTablaActual + " en la base de datos" + nombreBD;
+                mensaje = "ERROR: No se encontró la tabla " + nombreTablaActual + " en la base de datos" + nombreBD;
 
             }
 
 
         return mensaje;
     }
-
-    public String showColumns(String bd,String tabla){
-        String salida = "";
-
-        File input = new File("data\\"+bd+"\\"+tabla+"\\Metadata.txt");
-        try{
-            BufferedReader br = new BufferedReader(new FileReader(input));
-            String current;
-
-        }
-        catch (IOException e){
-
-        }
-
-        return salida;
-    }
-    
-        /**
-     * @author Joice Miranda 
-     * @param nombreBD nombre de la base de datos que contiene a la tabla
-     * @param nombreTabla nombre de la tabla en que se quiere ingresar el check
-     * @param nombreChk nombre del check
-     * @param exp expresion del check
-     * @return mensaje de exito o error de la accion
-     */
     public String addCheck(String nombreBD, String nombreTabla, String nombreChk, String exp){
         String mensaje="";
         /*
@@ -1019,59 +993,14 @@ public class Funciones {
             boolean successful = temp.renameTo(input);
             mensaje = "La tabla " + nombreTabla + " ha sido actualizada";
         } catch (IOException e) {
-            mensaje = "ERROR . No se encontró la tabla " + nombreTabla + " en la base de datos" + nombreBD;
-
-        }
-    return mensaje;
-    }
-
-    /**
-     * author Joice Miranda
-     * @param nombreBD nombre de la base de datos actual
-     * @param nombreTabla nombre de la tabla que tiene la llave primaria
-     * @return mensaje de exito o error de la operacion
-     */
-    public String dropPrimaryKey(String nombreBD, String nombreTabla){
-        String mensaje="";
-        /*
-        Ingresar las llaves primarias
-         */
-
-        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
-        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(input));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
-
-            String current;
-            while ((current = br.readLine()) != null) {
-                bw.write(current + System.getProperty("line.separator"));
-                if (current.contains("PRIMARY KEY")) {
-                    String linea= br.readLine();
-                    if (linea.contains("FOREIGN KEY")){
-                        mensaje="ERROR . No existe ninguna primary key para eliminar";
-                        bw.write(current + System.getProperty("line.separator"));
-                    }
-                }
-            }
-            br.close();
-            bw.close();
-            Delete(input);
-            boolean successful = temp.renameTo(input);
-            mensaje = "La tabla " + nombreTabla + " ha sido actualizada";
-        } catch (IOException e) {
-            mensaje = "ERROR . No se encontró la tabla " + nombreTabla + " en la base de datos" + nombreBD;
+            mensaje = "ERROR: No se encontró la tabla " + nombreTabla + " en la base de datos" + nombreBD;
 
         }
         return mensaje;
-
     }
+    public String DeleteDirectoryTable(String nameTable, String actualDB){
 
-    
-        public String DeleteDirectoryTable(String nameTable, String actualDB){
-
-        File directory = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable );
+        File directory = new File("data\\" + actualDB + "\\" + nameTable );
 
         //make sure directory exists
         if(!directory.exists()){
@@ -1099,21 +1028,21 @@ public class Funciones {
                     return mensaje;
 
                 } catch (IOException e) {
-                    String mensaje = "Se produjo un error al tratar de eliminar el directorio de la tabla.";
+                    String mensaje = "ERROR: Se produjo un error al tratar de eliminar el directorio de la tabla.";
                     e.printStackTrace();
                     return mensaje;
                 }
             } else{
-                String mensaje = "No se pudo eliminar la tabla. Esta tabla tiene una columna FK en otra tabla";
+                String mensaje = "ERROR: No se pudo eliminar la tabla. Esta tabla tiene una columna FK en otra tabla";
                 return mensaje;
             }
         }
     }
 
-        public String DeleteTableMetadata(String nameTable, String actualDB) {
+    public String DeleteTableMetadata(String nameTable, String actualDB) {
 
-        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable);
-        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable);
+        File input = new File("data\\" + actualDB + "\\" + nameTable);
+        File temp = new File("data\\" + actualDB + "\\" + nameTable);
 
         if (input.exists()) {
 
@@ -1146,12 +1075,12 @@ public class Funciones {
                 return mensaje;
 
             } catch (IOException e) {
-                String mensaje = "No se encontró la tabla: (" + nameTable + ") del archivo de Metadata.txt";
+                String mensaje = "ERROR: No se encontró la tabla: (" + nameTable + ") del archivo de Metadata.txt";
                 return mensaje;
             }
 
         }else {
-            String mensaje = "La DB esta siendo manejada incorrectamente " +
+            String mensaje = "ERROR: La DB esta siendo manejada incorrectamente " +
                     "No existe archivo Metadata.txt dentro del directorio o DB";
             return mensaje;
         }
@@ -1160,8 +1089,8 @@ public class Funciones {
     public void RestarTabla(String actualDB, String nameTable ){
 
         try {
-            File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "Metadata.txt");
-            File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "temp.txt");
+            File input = new File("data\\" + actualDB + "Metadata.txt");
+            File temp = new File("data\\" + actualDB + "temp.txt");
 
 
             BufferedReader reader = new BufferedReader(new FileReader(input));
@@ -1193,13 +1122,13 @@ public class Funciones {
             System.out.println(successful);
 
         }catch (IOException e){
-            System.out.println("No se encontró el archivo de Metadata.txt");
+            System.out.println("ERROR: No se encontró el archivo de Metadata.txt");
         }
 
     }
 
-    
-        public Boolean IsTableColumnFK (String actualDB, String nameTable ){
+
+    public Boolean IsTableColumnFK (String actualDB, String nameTable ){
 
         // Se llaman a todas las tablas existentes de esa DB
         ArrayList<String> tablas = showTable2(actualDB);
@@ -1250,22 +1179,36 @@ public class Funciones {
                     System.out.println(mensaje);
 
                 }catch(IOException e){
-                    System.out.println("Ocurrio IOException: No se pudo chequear el archivo Metadata.txt");
+                    System.out.println("ERROR: Ocurrio IOException: No se pudo chequear el archivo Metadata.txt");
                 }
             }
         }
         return tablasFK;
     }
-    
-    
+
+    public String showColumns(String bd,String tabla){
+        String salida = "";
+
+        File input = new File("data\\"+bd+"\\"+tabla+"\\Metadata.txt");
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            String current;
+
+        }
+        catch (IOException e){
+
+        }
+
+        return salida;
+    }
     /**
      * author Joice Miranda
      * @param nombreBD nombre de la base de datos actual
      * @param nombreTabla nombre de la tabla que tiene la llave primaria
-     * @return true si elimina algo, false si no. 
+     * @return true si elimina algo, false si no.
      */
     public boolean dropPrimaryKey(String nombreBD, String nombreTabla, String nombreConstraint){
-        boolean salida;
+        boolean salida=false;
         /*
         Ingresar las llaves primarias
          */
@@ -1281,12 +1224,12 @@ public class Funciones {
             while ((current = br.readLine()) != null) {
                 bw.write(current + System.getProperty("line.separator"));
                 if (current.contains("PRIMARY KEY")) {
-                    String linea= br.readLine();
-                    if (linea.contains("FOREIGN KEY")){
+                    current= br.readLine();
+                    if (current.contains("FOREIGN KEY")){
                         salida=false;
                         bw.write(current + System.getProperty("line.separator"));
                     }
-                    if (linea.contains(nombreConstraint)){
+                    if (current.contains(nombreConstraint)){
                         salida=true;
                     }
                 }
@@ -1295,7 +1238,6 @@ public class Funciones {
             bw.close();
             Delete(input);
             boolean successful = temp.renameTo(input);
-            salida=true;
         } catch (IOException e) {
             salida=false;
 
@@ -1313,7 +1255,7 @@ public class Funciones {
      */
 
     public boolean dropForeignKey(String nombreBD, String nombreTabla, String nombreConstraint){
-        boolean salida;
+        boolean salida = false;
         /*
         Ingresar las llaves primarias
          */
@@ -1336,26 +1278,23 @@ public class Funciones {
                         }
                         else{
                             salida=false;
-                            bw.write(current + System.getProperty("line.separator"));    
+                            bw.write(current + System.getProperty("line.separator"));
                         }
                         current=br.readLine();
                     }
+                    bw.write(current+System.getProperty("line.separator"));
                 }
             }
             br.close();
             bw.close();
             Delete(input);
             boolean successful = temp.renameTo(input);
-            salida=true;
         } catch (IOException e) {
             salida=false;
-
         }
         return salida;
 
     }
-
-    
 }
 
 
