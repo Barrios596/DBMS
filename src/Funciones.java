@@ -902,6 +902,72 @@ public class Funciones {
             }
         }
     }
+    
+    
+    
+    /**
+     * @author Joice Miranda
+     * @param nombreTablaActual nombre de la columna donde se va a ingresar la llave
+     * @param nombreTablaExterna nombre de la columna que tiene la llave
+     * @param nombreBD nombre de la base de datos actual
+     * @param nombreFK nombre de la llave foranea
+     * @param columnas nombre de la columna que sera llave foranea
+     * @param columnaInterna nombre de la columna que se enlazara con la llave foranea
+     * @return mensaje de exito o error de la accion
+     */
+    public String addForeingKey (String nombreTablaActual, String nombreTablaExterna, String nombreBD, String nombreFK, String columnas, String columnaInterna) {
+        String mensaje = "";
+        boolean existe = false;
+        /*
+        Se revisan que existan klas columnas ingresadas
+         */
+
+        String[] columnasReales = columnasExistentes(nombreTablaExterna, nombreBD);
+        for (int i = 0; i < columnasReales.length; i++) {
+            if (columnasReales[i].equals(columnas)) {
+                existe = true;
+            }
+
+        if (existe==false){
+            return "Columna ingresadas no existen en la tabla"+ nombreTablaExterna;
+
+        }
+
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\"+nombreBD+"\\"+nombreTablaActual+"\\Metadata.txt");
+        File temp = new File("data\\"+nombreBD+"\\"+nombreTablaActual+"\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null){
+                if(current.contains("FOREING KEY")){
+                    bw.write(nombreFK+" "+columnaInterna+","+nombreTablaExterna+","+columnas+System.getProperty("line.separator"));
+                    while ((current = br.readLine()) != "CHECK"){
+                    }
+
+                }
+                bw.write(current+System.getProperty("line.separator"));
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            mensaje="La tabla"+nombreTablaActual+"ha sido actualizada";
+        }
+        catch (IOException e){
+            mensaje=" No se encontró la tabla"+nombreTablaActual+" en la base de datos"+ nombreBD;
+
+        }
+
+        return mensaje;
+    }
+
 }
 
 
