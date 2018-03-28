@@ -984,6 +984,47 @@ public class Funciones {
 
         return salida;
     }
+    
+        /**
+     * @author Joice Miranda 
+     * @param nombreBD nombre de la base de datos que contiene a la tabla
+     * @param nombreTabla nombre de la tabla en que se quiere ingresar el check
+     * @param nombreChk nombre del check
+     * @param exp expresion del check
+     * @return mensaje de exito o error de la accion
+     */
+    public String addCheck(String nombreBD, String nombreTabla, String nombreChk, String exp){
+        String mensaje="";
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null) {
+                bw.write(current + System.getProperty("line.separator"));
+                if (current.contains("CHECK")) {
+                    bw.write(nombreChk + " " + exp + System.getProperty("line.separator"));
+                }
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            mensaje = "La tabla " + nombreTabla + " ha sido actualizada";
+        } catch (IOException e) {
+            mensaje = "ERROR . No se encontró la tabla " + nombreTabla + " en la base de datos" + nombreBD;
+
+        }
+    return mensaje;
+    }
+
 
 }
 
