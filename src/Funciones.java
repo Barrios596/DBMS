@@ -1066,9 +1066,197 @@ public class Funciones {
         }
         return mensaje;
 
+    }
+
+    
+        public String DeleteDirectoryTable(String nameTable, String actualDB){
+
+        File directory = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable );
+
+        //make sure directory exists
+        if(!directory.exists()){
+
+            String mensaje = "El tabla que desea eliminar no existe.";
+            System.out.println(mensaje);
+            return mensaje;
+
+            // Si el directorio existe, entonces utiliza la funcion 'delete'.
+        }else {
+
+            if (!IsTableColumnFK(actualDB,nameTable)) {
+                try {
+                    // Elimina el directorio de la tabla.
+                    Delete(directory);
+
+                    // Elimina la tabla del archivo Metadata dentro de la actualDB.
+                    String mensaje2 = DeleteTableMetadata(nameTable, actualDB);
+
+                    // Resta 1 al indice que lleva la cuenta de cuantas tablas existen en esa DB.
+                    RestarTabla(actualDB, nameTable);
+
+                    String mensaje = "El directorio de la tabla fue eliminada con exito y eliminado del archivo. \n" +
+                            mensaje2;
+                    return mensaje;
+
+                } catch (IOException e) {
+                    String mensaje = "Se produjo un error al tratar de eliminar el directorio de la tabla.";
+                    e.printStackTrace();
+                    return mensaje;
+                }
+            } else{
+                String mensaje = "No se pudo eliminar la tabla. Esta tabla tiene una columna FK en otra tabla";
+                return mensaje;
+            }
+        }
+    }
+
+        public String DeleteTableMetadata(String nameTable, String actualDB) {
+
+        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable);
+        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable);
+
+        if (input.exists()) {
+
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(input));
+                BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+                String current;
+
+                /*
+                Se escriben todas las lineas en un archivo temporal, exceptuando la que contiene el nombre de la tabla
+                Se elimina el archivo inicial y se renombra el archivo temporal como inicial.
+                 */
+
+                while ((current = br.readLine()) != null) {
+                    if (current.contains(nameTable)) {
+                        continue;
+                    }
+                    bw.write(current + System.getProperty("line.separator"));
+                }
+                br.close();
+                bw.close();
+                Delete(input);
+
+                boolean successful = temp.renameTo(input);
+
+                System.out.println(successful);
+                String mensaje = "Se eliminó la tabla: (" + nameTable + ") del archivo de Metadata.txt" +
+                        "de la DB ";
+                return mensaje;
+
+            } catch (IOException e) {
+                String mensaje = "No se encontró la tabla: (" + nameTable + ") del archivo de Metadata.txt";
+                return mensaje;
+            }
+
+        }else {
+            String mensaje = "La DB esta siendo manejada incorrectamente " +
+                    "No existe archivo Metadata.txt dentro del directorio o DB";
+            return mensaje;
+        }
+    }
+
+    public void RestarTabla(String actualDB, String nameTable ){
+
+        try {
+            File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "Metadata.txt");
+            File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "temp.txt");
+
+
+            BufferedReader reader = new BufferedReader(new FileReader(input));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+
+
+            while ((current = reader.readLine()) != null){
+                if(current.contains(nameTable)){
+
+                    String inicial = current.substring(0,current.indexOf(','));
+                    String indice = current.substring(current.indexOf(',')+1);
+
+                    int cantidad = Integer.parseInt(indice);
+                    cantidad--;
+
+                    indice=String.valueOf(cantidad);
+                    current=inicial+','+indice;
+                }
+                writer.write(current+System.getProperty("line.separator"));
+            }
+
+            reader.close();
+            writer.close();
+
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+
+        }catch (IOException e){
+            System.out.println("No se encontró el archivo de Metadata.txt");
+        }
 
     }
 
+    
+        public Boolean IsTableColumnFK (String actualDB, String nameTable ){
+
+        // Se llaman a todas las tablas existentes de esa DB
+        ArrayList<String> tablas = showTable2(actualDB);
+        Boolean tablasFK = Boolean.FALSE;
+
+
+        // Si existen tablas dentro de esa DB ...
+        if(!tablas.isEmpty()){
+
+            // Se obtienen todos los Metadata.txt para cada una de las tablas en la DB
+            for (int i = 0; i<tablas.size(); i++ ){
+
+                // Se crea un objeto file
+                File input = new File(tablas.get(i) + "\\Metadata.txt");
+
+                try{
+                    BufferedReader br = new BufferedReader(new FileReader(input));
+                    String current;
+
+                    // Para el archivo Metadata.txt actual. Se recorren todas las lineas
+                    while ((current = br.readLine()) != null){
+                        String lineanueva = "";
+
+                        // Si la linea es FOREIGN KEY ...
+                        if(current.contains("FOREIGN KEY")) {
+
+                            // Se obtienen las lineas siguientes mientras la linea no contenga a CHECK.
+                            while (!(current = br.readLine()).contains("CHECK")){
+                                // Se obtienen todas las palabras de de esa linea
+                                String [] palabras = current.split(",");
+
+                                /*
+                                Si en la posicion 1 de nuestro arreglo se encuentra el
+                                nombre de la tabla (Es decir: Esta tiene una columna  es referenciada).
+                                */
+
+                                if(palabras[1].equals(nameTable)){
+                                    tablasFK = Boolean.TRUE;
+
+                                }
+                            }
+                        }
+                    }
+
+                    br.close();
+
+                    String mensaje = "Se chequeo el archivo Metadata.tx de \n" + tablas.get(i) + " con exito" ;
+                    System.out.println(mensaje);
+
+                }catch(IOException e){
+                    System.out.println("Ocurrio IOException: No se pudo chequear el archivo Metadata.txt");
+                }
+            }
+        }
+        return tablasFK;
+    }
+    
 }
 
 
