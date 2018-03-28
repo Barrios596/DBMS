@@ -1404,6 +1404,37 @@ public class Funciones {
 
         }
     }
+    
+    
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de daros
+     * @param nombreTabla nombre de la tabla en la base de datos
+     * @param nombreConstraint nombre del constraint a eliminar
+     * @return mensaje de error o exito de la operacion
+     */
+    public String dropConstraint (String nombreBD, String nombreTabla, String nombreConstraint){
+        String mensaje="";
+        boolean PK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
+        boolean FK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
+        boolean CHK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
+        
+        if (PK==true){
+            mensaje=mensaje+"La llave primaria "+nombreConstraint+" fue eliminada";
+            
+        }
+        else if (FK==true){
+            mensaje=mensaje+"La llave primaria "+nombreConstraint+" fue eliminada";
+        }
+        else if (CHK==true){
+            mensaje=mensaje+"El check "+nombreConstraint+" fue eliminado";
+        }
+        else{
+            mensaje="ERROR, no existe ningun contraint con el nombre"+ nombreConstraint;
+        }
+        return mensaje;
+
+    }
 
 }
 
