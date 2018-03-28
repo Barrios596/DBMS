@@ -1274,7 +1274,15 @@ public class Funciones {
                     current= br.readLine();
                     while (!current.contains("CHECK")){
                         if (current.contains(nombreConstraint)){
-                            salida=true;
+                            String []part=current.split(" ");
+                            if (!part[0].equals(nombreConstraint)){
+                                salida=true;
+                            }
+                            else{
+                                bw.write(current);
+                                salida=false;
+                            }
+                            
                         }
                         else{
                             salida=false;
