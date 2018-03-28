@@ -47,7 +47,7 @@ public class Funciones {
         }
         else {
             System.out.println("El directorio o nombre de su Base de Datos ya existe");
-            return "El directorio o nombre de su Base de Datos "+name+" ya existe.";
+            return "ERROR: El directorio o nombre de su Base de Datos "+name+" ya existe.";
 
         }
     }
@@ -66,12 +66,12 @@ public class Funciones {
                 System.out.println("El archivo de texto 'Metadata' fue creado correctamente");
             }
             else{
-                System.out.println("Ya existe un archivo Metadata");
+                System.out.println("ERROR: Ya existe un archivo Metadata");
             }
         }
 
         catch (IOException e){
-            System.out.println("Ocurrió una excepción: No se pudo crear archivo Metadata o este no se pudo encontrar");
+            System.out.println("ERROR: Ocurrió una excepción: No se pudo crear archivo Metadata o este no se pudo encontrar");
             e.printStackTrace();
 
         }
@@ -84,7 +84,7 @@ public class Funciones {
         if (!file.exists()) {
 
             // Mensaje para mostrar en consola y a usuario
-            String mensaje = "La Base de Datos  o directorio no existe";
+            String mensaje = "ERROR: La Base de Datos  o directorio no existe";
             System.out.println(mensaje);
             return mensaje;
 
@@ -95,7 +95,7 @@ public class Funciones {
             RenameDBMetadata(nameDB, newNameDB);
 
             // Mensaje para mostrar en consola y a usuario
-            String mensaje = "El cambio de nombre se realizo con exito";
+            String mensaje = "El cambio de nombre se realizó con exito";
             System.out.println(mensaje);
             return mensaje;
 
@@ -117,7 +117,7 @@ public class Funciones {
             Files.write(path, content.getBytes(charset));
 
         } catch(IOException e) {
-            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre de la DB" +
+            System.out.println("ERROR: Ocurrió una IOexception: No se pudo realizar el renombre de la DB" +
                     " en el archivo Metadata.txt");
             e.printStackTrace();
 
@@ -131,7 +131,7 @@ public class Funciones {
         //make sure directory exists
         if(!directory.exists()){
 
-            String mensaje = "El directorio "+nameDB+" no existe.";
+            String mensaje = "ERROR: El directorio "+nameDB+" no existe.";
             System.out.println(mensaje);
             return mensaje;
 
@@ -734,9 +734,16 @@ public class Funciones {
             BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
 
             String current;
+            boolean primaria = false;
             while ((current = br.readLine()) != null){
-                bw.write(current+System.getProperty("line.separator"));
+                if(current.contains("FOREIGN KEY")){
+                    primaria=false;
+                }
+                if (!primaria) {
+                    bw.write(current + System.getProperty("line.separator"));
+                }
                 if(current.contains("PRIMARY KEY")){
+                    primaria=true;
                     bw.write(nombrePK+" "+columnas+System.getProperty("line.separator"));
                 }
             }
@@ -744,7 +751,7 @@ public class Funciones {
             bw.close();
             Delete(input);
             boolean successful = temp.renameTo(input);
-            mensaje="La tabla"+nombreTabla+"ha sido actualizada";
+            mensaje="La tabla "+nombreTabla+" ha sido actualizada";
         }
         catch (IOException e){
             mensaje=" No se encontró la tabla"+nombreTabla+" en la base de datos"+ nombreBD;
@@ -808,7 +815,6 @@ public class Funciones {
             File input = new File(nombreTabla+"\\Metadata.txt");
             try {
                 BufferedReader br = new BufferedReader(new FileReader(input));
-                System.out.println("no entrooo");
                 String current;
                 while ((current = br.readLine()) != null ){
                     if(current.contains("FOREIGN KEY")){
@@ -902,9 +908,7 @@ public class Funciones {
             }
         }
     }
-    
-    
-    
+
     /**
      * @author Joice Miranda
      * @param nombreTablaActual nombre de la columna donde se va a ingresar la llave
@@ -927,45 +931,58 @@ public class Funciones {
             if (columnasReales[i].equals(columnas)) {
                 existe = true;
             }
-
-        if (existe==false){
-            return "Columna ingresadas no existen en la tabla"+ nombreTablaExterna;
-
         }
+            if (existe == false) {
+                return "Columna ingresadas no existen en la tabla " + nombreTablaExterna;
+
+            }
 
         /*
         Ingresar las llaves primarias
          */
 
-        File input = new File("data\\"+nombreBD+"\\"+nombreTablaActual+"\\Metadata.txt");
-        File temp = new File("data\\"+nombreBD+"\\"+nombreTablaActual+"\\temporal1.txt");
+            File input = new File("data\\" + nombreBD + "\\" + nombreTablaActual + "\\Metadata.txt");
+            File temp = new File("data\\" + nombreBD + "\\" + nombreTablaActual + "\\temporal1.txt");
 
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(input));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(input));
+                BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
 
-            String current;
-            while ((current = br.readLine()) != null){
-                if(current.contains("FOREING KEY")){
-                    bw.write(nombreFK+" "+columnaInterna+","+nombreTablaExterna+","+columnas+System.getProperty("line.separator"));
-                    while ((current = br.readLine()) != "CHECK"){
+                String current;
+                while ((current = br.readLine()) != null) {
+                    bw.write(current + System.getProperty("line.separator"));
+                    if (current.contains("FOREIGN KEY")) {
+                        bw.write(nombreFK + " " + columnaInterna + "," + nombreTablaExterna + "," + columnas + System.getProperty("line.separator"));
                     }
-
                 }
-                bw.write(current+System.getProperty("line.separator"));
-            }
-            br.close();
-            bw.close();
-            Delete(input);
-            boolean successful = temp.renameTo(input);
-            mensaje="La tabla"+nombreTablaActual+"ha sido actualizada";
-        }
-        catch (IOException e){
-            mensaje=" No se encontró la tabla"+nombreTablaActual+" en la base de datos"+ nombreBD;
+                br.close();
+                bw.close();
+                Delete(input);
+                boolean successful = temp.renameTo(input);
+                mensaje = "La tabla " + nombreTablaActual + " ha sido actualizada";
+            } catch (IOException e) {
+                mensaje = "No se encontró la tabla " + nombreTablaActual + " en la base de datos" + nombreBD;
 
-        }
+            }
+
 
         return mensaje;
+    }
+
+    public String showColumns(String bd,String tabla){
+        String salida = "";
+
+        File input = new File("data\\"+bd+"\\"+tabla+"\\Metadata.txt");
+        try{
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            String current;
+
+        }
+        catch (IOException e){
+
+        }
+
+        return salida;
     }
 
 }
