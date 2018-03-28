@@ -1025,6 +1025,49 @@ public class Funciones {
     return mensaje;
     }
 
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos actual
+     * @param nombreTabla nombre de la tabla que tiene la llave primaria
+     * @return mensaje de exito o error de la operacion
+     */
+    public String dropPrimaryKey(String nombreBD, String nombreTabla){
+        String mensaje="";
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null) {
+                bw.write(current + System.getProperty("line.separator"));
+                if (current.contains("PRIMARY KEY")) {
+                    String linea= br.readLine();
+                    if (linea.contains("FOREIGN KEY")){
+                        mensaje="ERROR . No existe ninguna primary key para eliminar";
+                        bw.write(current + System.getProperty("line.separator"));
+                    }
+                }
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            mensaje = "La tabla " + nombreTabla + " ha sido actualizada";
+        } catch (IOException e) {
+            mensaje = "ERROR . No se encontró la tabla " + nombreTabla + " en la base de datos" + nombreBD;
+
+        }
+        return mensaje;
+
+
+    }
 
 }
 
