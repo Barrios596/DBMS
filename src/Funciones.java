@@ -1303,6 +1303,65 @@ public class Funciones {
         return salida;
 
     }
+    
+    
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos
+     * @param nombreTabla nombre de la tabla
+     * @param nombreConstraint nombre de la contraint a eliminar
+     * @return true si elimina, false si no
+     */
+
+    public boolean dropCheck(String nombreBD, String nombreTabla, String nombreConstraint){
+        boolean salida = false;
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null) {
+                bw.write(current + System.getProperty("line.separator"));
+                if (current.contains("CHECK")) {
+                    current= br.readLine();
+                    while (current!= null){
+                        if (current.contains(nombreConstraint)){
+                            String []part=current.split(" ");
+                            if (!part[0].equals(nombreConstraint)){
+                                salida=true;
+                            }
+                            else{
+                                bw.write(current);
+                                salida=false;
+                            }
+
+                        }
+                        else{
+                            salida=false;
+                            bw.write(current + System.getProperty("line.separator"));
+                        }
+                        current=br.readLine();
+                    }
+                    bw.write(current+System.getProperty("line.separator"));
+                }
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+        } catch (IOException e) {
+            salida=false;
+        }
+        return salida;
+
+    }
 }
 
 
