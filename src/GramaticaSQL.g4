@@ -77,8 +77,8 @@ int_literal: (NUMX|DIGIT|DIGIT_four|DIGIT_two);
 
 float_literal: (NUMX|DIGIT|DIGIT_four|DIGIT_two) '.' (NUMX|DIGIT|DIGIT_four|DIGIT_two);
 
-char_literal: APOS ( CHARX|IDX|WORD|NUMX|DIGIT|DIGIT_four|DIGIT_two) APOS ; 
- 
+char_literal: APOS ( CHARX|IDX|WORD|NUMX|DIGIT|DIGIT_four|DIGIT_two) APOS ;
+
 date_literal: APOS DIGIT_four '-' DIGIT_two '-' DIGIT_two APOS ;
 
 
@@ -103,7 +103,7 @@ WS: [ \t\r\n]+ -> skip;
 //SPACEX: (' '|'\n'|'\t'|'\f'|'\r\n'|'\r'){skip();};
 
 
-//COMMENTX: '//'(~('\r'|'\n'))*{skip();}; 
+//COMMENTX: '//'(~('\r'|'\n'))*{skip();};
 
 
 
@@ -114,7 +114,7 @@ database:
 	|alterDatabase
 	|dropDatabase
 	|showDatabase
-	|useDatabase 
+	|useDatabase
 	|createTable
 	|alterTable
 	|alterModifyTable
@@ -136,10 +136,9 @@ showDatabase: SHOW DATABASES;
 
 useDatabase: USE DATABASE IDX;
 
-	
 tipo: INT|FLOAT|DATE|CHAR '(' (NUMX|DIGIT|DIGIT_four|DIGIT_two)* ')' ;
 
-createTable: CREATE TABLE IDX '(' columna (',' columna)* (',' CONSTRAINT constraint)*')';
+createTable: CREATE TABLE IDX '(' columna (',' columna)* ( CONSTRAINT constraint)*')';
 
 columna: IDX tipo;
 
@@ -147,39 +146,33 @@ constraint: primaryKey | foreignKey | check;
 
 primaryKey: IDX PRIMARY KEY '(' IDX (','IDX)* ')';
 
-foreignKey: IDX FOREIGN KEY '(' IDX (','IDX)*')' REFERENCES IDX '(' IDX (','IDX)*')' ;
+foreignKey: IDX FOREIGN KEY '(' IDX ')' REFERENCES IDX '(' IDX ')' ;
 
 check: IDX CHECK (exp);
 
-
-
 exp: (cond | notOp) ;
-
 
 location: IDX ('.' IDX)?;
 
 operacion: location | literal;
 
+cond:
+	(rel | notOp ) (cond_op (rel | notOp ))* ;
 
+rel:
+	(operacion) (rel_op operacion)? ;
 
-cond: 
-	(rel | notOp ) (cond_op (rel | notOp ))* ;	
-	
-
-rel: 
-	(operacion) (rel_op operacion)? ;	
-	
 notOp: (NOT)? '('(rel|cond)')';
-	
+
 alterTable: ALTER TABLE IDX RENAME TO IDX ;
 
 alterModifyTable: ALTER TABLE IDX action (',' action)* ;
 
-action: 
-	addColumn | 
+action:
+	addColumn |
 	addConstraint |
 	dropConstraint |
-	dropColumn; 
+	dropColumn;
 
 addColumn: ADD COLUMN columna (CONSTRAINT constraint (',' CONSTRAINT constraint)*)? ;
 
@@ -189,17 +182,17 @@ dropColumn: DROP COLUMN IDX;
 
 dropConstraint: DROP CONSTRAINT IDX ;
 
- 
+
 dropTable: DROP TABLE IDX;
 
-showTables: SHOW TABLES; 
+showTables: SHOW TABLES;
 
 showColumns: SHOW COLUMNS FROM IDX ;
 
 
 // Gramatica para parte 2
 
-insertInto: INSERT INTO IDX ('(' IDX (',' IDX)* ')')? VALUES '(' literal (',' literal)* ')';
+insertInto: INSERT INTO IDX ('(' IDX ')')? VALUES '(' literal ')';
 
 updateSet: UPDATE IDX SET updateColumas (WHERE exp)? ;
 updateColumas: cambio (',' cambio)*;
@@ -207,19 +200,19 @@ cambio: IDX '=' literal;
 
 
 deleteFrom: DELETE FROM IDX (WHERE exp)? ;
-	
+
 selectFrom: SELECT cols FROM tabs (WHERE exp)? (orden)? ;
 
 orden: ORDER BY colOrder (',' colOrder)* ;
 
 colOrder: location (ASC|DESC)? ;
-	
+
 cols: '*' | location(',' location)*;
 
 tabs: IDX (',' IDX)*;
 
 
-// Operadores rel y eq 
+// Operadores rel y eq
 
 rel_op: '<' | '>' | '<=' | '>='| '='|'<>';
 

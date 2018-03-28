@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Funciones {
     public String  CreateDirectory(String name) {
@@ -101,57 +102,27 @@ public class Funciones {
         }
     }
 
-public void RenameDBMetadata (String nameDB, String newNameDB){
+    public void RenameDBMetadata (String nameDB, String newNameDB){
 
-        // Se crea un objeto file y uno temporal
-        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\Metadata.txt");
-        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\temp.txt");
+        Path path = Paths.get("data\\Metadata.txt");
+        Charset charset = StandardCharsets.UTF_8;
 
         try{
-            BufferedReader br = new BufferedReader(new FileReader(input));
-            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
-
-            String current;
-
             /*
-            Se lee cada linea del archivo de texto
-            Y divide la linea actual en un array de Strings
+            Se va a buscar dentro de contenido del archivo.
+            Si se encuentra el nombre de la DB, se realizara el remplazo.
              */
-            while ((current = br.readLine()) != null){
-                String lineanueva = "";
-                String [] parts = current.split(",");
+            String content = new String(Files.readAllBytes(path), charset);
+            content = content.replace(nameDB, newNameDB);
+            Files.write(path, content.getBytes(charset));
 
-                /*
-                Se recorre el arreglo y se compara con el nombre  de DB que se desea cambiar
-                Si se encuentra escribe sobre la linea el nuevo nombre
-                 */
-                for (int i = 0; i< parts.length;i++){
-                    if (parts[i].equals(nameDB)){
-                        lineanueva = lineanueva + newNameDB + ",";
-                    }else {
-                        lineanueva = lineanueva + parts[i] + ",";
-                    }
-                }
-                bw.write(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
-            }
+        } catch(IOException e) {
+            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre de la DB" +
+                    " en el archivo Metadata.txt");
+            e.printStackTrace();
 
-            br.close();
-            bw.close();
-
-            // Se sobrescribe el archivo Metadata.txt por el archivo temporal.
-            Delete(input);
-            boolean successful = temp.renameTo(input);
-            System.out.println(successful);
-
-            String mensaje = "Se realizo el remplazo del nombre de la DB en el archivo Metadata.txt.";
-            System.out.println(mensaje);
-
-        }catch(IOException e){
-            System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la DB " +
-                    " en el archivo Metadata.txt correspondiente.");
         }
     }
-
 
     public String DeleteDirectory(String nameDB){
 
@@ -424,9 +395,9 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
             File filerename = new File ("data\\" + ActualDB + "\\" + newNameTable);
             file.renameTo(filerename);
             RenameTableMetadata(nameTable, newNameTable, ActualDB);
-            
+
             // Renombra el nombre de la tabla, en otros Metadata.txt de otras tablas.
-            RenameTableOtherTableMetadata(nameTable, newNameTable, actualDB);
+            RenameTableOtherTableMetadata(nameTable, newNameTable, ActualDB);
 
 
             // Mensaje para mostrar en consola y a usuario
@@ -437,9 +408,9 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
     }
     public void RenameTableMetadata(String nameTable, String newNameTable, String ActualDB){
-                // Se crea un objeto file y uno temporal
-        File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\Metadata.txt");
-        File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\temp.txt");
+        // Se crea un objeto file y uno temporal
+        File input = new File("data\\" + ActualDB + "\\Metadata.txt");
+        File temp = new File("data\\" + ActualDB + "\\temp.txt");
 
         try{
             BufferedReader br = new BufferedReader(new FileReader(input));
@@ -483,7 +454,34 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         }catch(IOException e){
             System.out.println("Ocurrió una IOexception: No se pudo realizar el renombre la tabla " +
                     " en el archivo Metadata.txt correspondiente.");
-        }   
+        }
+    }
+
+    /*
+        Muestra los ficheros existentes en la Base de datos actual
+         */
+    public  String showTable (String BDActual){
+        String mensaje="";
+        String sDirectorio = "data\\"+BDActual;
+        File f = new File(sDirectorio);
+        if (f.exists()){
+            mensaje=mensaje+"Las tablas actuales de la base de datos"+ BDActual+ "son: \n ";
+            File[] ficheros = f.listFiles();
+
+            if (ficheros.length==0){
+                mensaje="No existen tablas";
+                return mensaje;
+            }
+
+            for (int x=0;x<ficheros.length;x++){
+                mensaje= mensaje+ ficheros[x].getName() +"\n";
+            }
+        }
+        else{
+            mensaje="No existen tablas";
+        }
+
+        return mensaje;
     }
 
 
@@ -665,6 +663,7 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
         return mensaje;
     }
+
     /**
      * author:Joice Miranda
      * @param nombreTabla nombre de la tabla de donde queremos ver las columnas
@@ -693,9 +692,8 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         return columnas;
     }
 
-    
     /**
-     * @author: Joice Miranda
+     * author: Joice Miranda
      * @param nombreTabla nombre de la tabla que contiene a las columnas
      * @param nombreBD nombre de la base de datos actual
      * @param nombrePK nombre de la Llave Primaria
@@ -755,8 +753,6 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
         return mensaje;
     }
-    
-    
     /*
    Muestra los ficheros existentes en la Base de datos actual
     */
@@ -799,22 +795,28 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
     public ArrayList<String> KFExistentes (String nombreBD ){
         ArrayList<String> archivos= showTable2(nombreBD);
         ArrayList<String> llaves = new ArrayList<String>();
+        for (int a=0; a<archivos.size();a++){
+            System.out.println(archivos.get(a));
+        }
 
         /*
         Recorre los archivos en buscar de las llaves foraneas
          */
         for (int i=0; i<archivos.size();i++){
             String nombreTabla=archivos.get(i);
+            System.out.println(nombreTabla);
             File input = new File(nombreTabla+"\\Metadata.txt");
             try {
                 BufferedReader br = new BufferedReader(new FileReader(input));
+                System.out.println("no entrooo");
                 String current;
                 while ((current = br.readLine()) != null ){
                     if(current.contains("FOREIGN KEY")){
+                        System.out.println("encontro el titulo");
                         while (!(current = br.readLine()).contains("CHECK")){
                             if (!llaves.contains(current)){
-                                String[] parts = current.split(",");
-                                llaves.add(parts[1]);
+                                System.out.println("Entra a agregar");
+                                llaves.add(current);
                             }
                         }
                     }
@@ -828,9 +830,7 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
         }
         return llaves;
     }
-    
-    
-        public void RenameTableOtherTableMetadata (String nameTable, String newNameTable, String actualDB){
+    public void RenameTableOtherTableMetadata (String nameTable, String newNameTable, String actualDB){
 
         // Se llaman a todas las tablas existentes de esa DB
         ArrayList<String> tablas = showTable2(actualDB);
@@ -842,13 +842,12 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
             for (int i=0; i<tablas.size(); i++ ){
 
                 // Se crea un objeto file y uno temporal
-                File input = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + tablas.get(i) + "\\Metadata.txt");
-                File temp = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + tablas.get(i) +  "\\temp.txt");
+                File input = new File(tablas.get(i) + "\\Metadata.txt");
+                File temp = new File(tablas.get(i) +  "\\temp.txt");
 
                 try{
                     BufferedReader br = new BufferedReader(new FileReader(input));
                     BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
-
                     String current;
 
                     // Para el archivo Metadata.txt actual. Se recorren todas las lineas
@@ -857,7 +856,8 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
 
                         // Si la linea es FOREIGN KEY ...
                         if(current.contains("FOREIGN KEY")) {
-
+                            bw.write(current);
+                            bw.newLine();
                             // Se obtienen las lineas siguientes mientras la linea no contenga a CHECK.
                             while (!(current = br.readLine()).contains("CHECK")){
                                 // Se obtienen todas las palabras de de esa linea
@@ -874,20 +874,15 @@ public void RenameDBMetadata (String nameDB, String newNameDB){
                                     // Se reconstruye la linea
                                     for (int j = 0; j< palabras.length;j++){
                                         lineanueva = lineanueva + palabras[j] + ",";
-
                                     }
-                                    bw.write(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
+                                    current=(lineanueva.substring(0,lineanueva.length()-1) + System.getProperty("line.separator"));
 
                                 }
                                 bw.write(current + System.getProperty("line.separator"));
                             }
-                        }else{
-                            bw.write(current + System.getProperty("line.separator"));
-
                         }
-
                         bw.write(current + System.getProperty("line.separator"));
-                   }
+                    }
 
                     br.close();
                     bw.close();
