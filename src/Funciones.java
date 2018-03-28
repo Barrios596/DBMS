@@ -1257,6 +1257,105 @@ public class Funciones {
         return tablasFK;
     }
     
+    
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos actual
+     * @param nombreTabla nombre de la tabla que tiene la llave primaria
+     * @return true si elimina algo, false si no. 
+     */
+    public boolean dropPrimaryKey(String nombreBD, String nombreTabla, String nombreConstraint){
+        boolean salida;
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null) {
+                bw.write(current + System.getProperty("line.separator"));
+                if (current.contains("PRIMARY KEY")) {
+                    String linea= br.readLine();
+                    if (linea.contains("FOREIGN KEY")){
+                        salida=false;
+                        bw.write(current + System.getProperty("line.separator"));
+                    }
+                    if (linea.contains(nombreConstraint)){
+                        salida=true;
+                    }
+                }
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            salida=true;
+        } catch (IOException e) {
+            salida=false;
+
+        }
+        return salida;
+
+    }
+
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos
+     * @param nombreTabla nombre de la tabla
+     * @param nombreConstraint nombre de la contraint a eliminar
+     * @return true si elimina, false si no
+     */
+
+    public boolean dropForeignKey(String nombreBD, String nombreTabla, String nombreConstraint){
+        boolean salida;
+        /*
+        Ingresar las llaves primarias
+         */
+
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\Metadata.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal1.txt");
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+            while ((current = br.readLine()) != null) {
+                bw.write(current + System.getProperty("line.separator"));
+                if (current.contains("FOREIGN KEY")) {
+                    current= br.readLine();
+                    while (!current.contains("CHECK")){
+                        if (current.contains(nombreConstraint)){
+                            salida=true;
+                        }
+                        else{
+                            salida=false;
+                            bw.write(current + System.getProperty("line.separator"));    
+                        }
+                        current=br.readLine();
+                    }
+                }
+            }
+            br.close();
+            bw.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            salida=true;
+        } catch (IOException e) {
+            salida=false;
+
+        }
+        return salida;
+
+    }
+
+    
 }
 
 
