@@ -1041,8 +1041,8 @@ public class Funciones {
 
     public String DeleteTableMetadata(String nameTable, String actualDB) {
 
-        File input = new File("data\\" + actualDB + "\\" + nameTable);
-        File temp = new File("data\\" + actualDB + "\\" + nameTable);
+        File input = new File("data\\" + actualDB +"\\Metadata.txt");
+        File temp = new File("data\\" + actualDB +"\\temporal.txt");
 
         if (input.exists()) {
 
@@ -1089,8 +1089,8 @@ public class Funciones {
     public void RestarTabla(String actualDB, String nameTable ){
 
         try {
-            File input = new File("data\\" + actualDB + "Metadata.txt");
-            File temp = new File("data\\" + actualDB + "temp.txt");
+            File input = new File("data\\" + "Metadata.txt");
+            File temp = new File("data\\" + "temp.txt");
 
 
             BufferedReader reader = new BufferedReader(new FileReader(input));
@@ -1100,7 +1100,7 @@ public class Funciones {
 
 
             while ((current = reader.readLine()) != null){
-                if(current.contains(nameTable)){
+                if(current.contains(actualDB)){
 
                     String inicial = current.substring(0,current.indexOf(','));
                     String indice = current.substring(current.indexOf(',')+1);
@@ -1275,14 +1275,14 @@ public class Funciones {
                     while (!current.contains("CHECK")){
                         if (current.contains(nombreConstraint)){
                             String []part=current.split(" ");
-                            if (!part[0].equals(nombreConstraint)){
+                            if (part[0].equals(nombreConstraint)){
                                 salida=true;
                             }
                             else{
-                                bw.write(current);
+                                bw.write(current+System.getProperty("line.separator"));
                                 salida=false;
                             }
-                            
+
                         }
                         else{
                             salida=false;
@@ -1303,8 +1303,7 @@ public class Funciones {
         return salida;
 
     }
-    
-    
+
     /**
      * author Joice Miranda
      * @param nombreBD nombre de la base de datos
@@ -1334,7 +1333,7 @@ public class Funciones {
                     while (current!= null){
                         if (current.contains(nombreConstraint)){
                             String []part=current.split(" ");
-                            if (!part[0].equals(nombreConstraint)){
+                            if (part[0].equals(nombreConstraint)){
                                 salida=true;
                             }
                             else{
@@ -1349,7 +1348,7 @@ public class Funciones {
                         }
                         current=br.readLine();
                     }
-                    bw.write(current+System.getProperty("line.separator"));
+                    //bw.write(current+System.getProperty("line.separator"));
                 }
             }
             br.close();
@@ -1362,49 +1361,7 @@ public class Funciones {
         return salida;
 
     }
-    
-    
-    public ArrayList<String []> AllColumnsAndTypes (String nameTable, String actualDB) {
 
-        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable + "\\" + "Metadata.txt");
-        ArrayList<String []> columnAndTypes = new ArrayList<String[]>();
-
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String current;
-
-            // Para el archivo Metadata.txt actual. Se recorren todas las lineas
-            while ((current = br.readLine()) != null) {
-
-                // Si la linea es COLUMN ...
-                if (current.contains("COLUMN")) {
-
-                    // Se obtienen las lineas siguientes mientras la linea no contenga a PRIMARY KEY.
-                    while (!(current = br.readLine()).contains("PRIMARY KEY")) {
-                        // Se obtienen todas las palabras de de esa linea
-                        String[] pairs = current.split(" ");
-
-                        // Se realiza una append/add al ArrayList columnAndTypes
-                        columnAndTypes.add(pairs);
-                        }
-                    }
-                }
-
-            br.close();
-
-            String mensaje = "Se obtuvieron todas las tablas y tipos de la tabla";
-            System.out.println(mensaje);
-            return columnAndTypes;
-
-        } catch (IOException e) {
-            String mensaje = "ERROR: Ocurrió una IOexception: No se pudo obtener las columnas" +
-                    "y sus tipos de la tabla";
-            System.out.println(mensaje);
-            return columnAndTypes;
-
-        }
-    }
 }
 
 
