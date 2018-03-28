@@ -1361,6 +1361,49 @@ public class Funciones {
         return salida;
 
     }
+    
+    
+        public ArrayList<String []> AllColumnsAndTypes (String nameTable, String actualDB) {
+
+        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable + "\\" + "Metadata.txt");
+        ArrayList<String []> columnAndTypes = new ArrayList<String[]>();
+
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String current;
+
+            // Para el archivo Metadata.txt actual. Se recorren todas las lineas
+            while ((current = br.readLine()) != null) {
+
+                // Si la linea es COLUMN ...
+                if (current.contains("COLUMN")) {
+
+                    // Se obtienen las lineas siguientes mientras la linea no contenga a PRIMARY KEY.
+                    while (!(current = br.readLine()).contains("PRIMARY KEY")) {
+                        // Se obtienen todas las palabras de de esa linea
+                        String[] pairs = current.split(" ");
+
+                        // Se realiza una append/add al ArrayList columnAndTypes
+                        columnAndTypes.add(pairs);
+                        }
+                    }
+                }
+
+            br.close();
+
+            String mensaje = "Se obtuvieron todas las tablas y tipos de la tabla";
+            System.out.println(mensaje);
+            return columnAndTypes;
+
+        } catch (IOException e) {
+            String mensaje = "ERROR: Ocurrió una IOexception: No se pudo obtener las columnas" +
+                    "y sus tipos de la tabla";
+            System.out.println(mensaje);
+            return columnAndTypes;
+
+        }
+    }
 
 }
 
