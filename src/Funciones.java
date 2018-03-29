@@ -1470,6 +1470,69 @@ public class Funciones {
         return mensaje;
 
     }
+    
+    
+    /**
+     * author Joice Miranda
+     * @param nombreBD nomnbre de la base de datos
+     * @param nombreTabla nombre de la tabla
+     * @param nombrecolumna nombre de la columna a actualizar
+     * @param valorNuevo nuevo valor
+     * @return mensaje de error o exito de la operacion
+     */
+
+    public String Update(String nombreBD, String nombreTabla, String nombrecolumna, String valorNuevo){
+        String mensaje="";
+        boolean existe=false;
+        int index=0;
+        int cont=0;
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\valores.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal.txt");
+
+        //Revisa si la columna ingresada existe
+        ArrayList<String []> columnasExistentes= AllColumnsAndTypes(nombreTabla,nombreBD);
+        for (int j=0; j<columnasExistentes.size();j++){
+            String [] unidad= columnasExistentes.get(j);
+            if (unidad[0].toLowerCase().equals(nombrecolumna.toLowerCase())){
+                existe = true;
+            }
+        }
+        if(existe==false){
+            mensaje="ERROR. No existe la columna "+nombrecolumna+" en la tabla "+nombreTabla;
+            return mensaje;
+        }
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+            //obtener el indice de la columna ingresada
+            String primerLinea= br.readLine();
+            String [] columnas= primerLinea.split(",");
+            for (int i=0;i<columnas.length;i++){
+                if (columnas[i].equals(nombrecolumna)){
+                    index=i;
+                }
+            }
+
+            String current="";
+            while ((current = br.readLine())!=null){
+                String lineaJunta="";
+                String[] parts= current.split(",");
+                parts[index]=valorNuevo;
+                for (int a=0;a<parts.length;a++){
+                    lineaJunta =lineaJunta+","+parts[a];
+                }
+                cont=cont+1;
+                bw.write(lineaJunta +System.getProperty("line.separator"));
+
+            }
+            mensaje="UPDATE "+ cont+" con éxito";
+        }
+        catch (IOException e){
+            mensaje="ERROR. No existe la tabla "+nombreTabla+" en la base de datos "+nombreBD;
+        }
+        return mensaje;
+    }
 
 }
 
