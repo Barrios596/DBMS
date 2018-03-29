@@ -29,6 +29,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             String nombre = ctx.getChild(2).getText();
             salida = salida + creador.CreateDirectory(nombre) + '\n';
         }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
         return visitChildren(ctx);
     }
     /**
@@ -42,6 +45,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             String viejo = ctx.getChild(2).getText();
             String nuevo = ctx.getChild(5).getText();
             salida = salida + creador.ModifyNameDirectory(viejo, nuevo) + '\n';
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
         }
         return visitChildren(ctx);
     }
@@ -57,6 +63,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             String nombre = ctx.getChild(2).getText();
             salida = salida + creador.DeleteDirectory(nombre) + '\n';
         }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
         return visitChildren(ctx); }
     /**
      * @Author Rodrigo Barrios
@@ -66,8 +75,11 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
      */
     @Override public String visitShowDatabase(GramaticaSQLParser.ShowDatabaseContext ctx) {
         if(todobien){
-            System.out.println(creador.KFExistentes("bd"));
+            System.out.println(creador.dropCheck("bd","tabla2","chequear"));
             salida = salida + creador.showDB() + '\n';
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
         }
         return visitChildren(ctx);
     }
@@ -84,6 +96,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                 dbActual = ctx.getChild(2).getText();
             }
             salida = salida + agregar + '\n';
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
         }
         return visitChildren(ctx);
     }
@@ -115,8 +130,16 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                     cTipo = cTipo.toLowerCase();
                     writer.write("COLUMNS");
                     writer.newLine();
-                    writer.write(cNombre + " " + cTipo);
+                    writer.write("PRIMARY KEY");
                     writer.newLine();
+                    writer.write("FOREIGN KEY");
+                    writer.newLine();
+                    writer.write("CHECK");
+                    writer.newLine();
+                    writer.close();
+                    /*writer.write(cNombre + " " + cTipo);
+                    writer.newLine();*/
+                    creador.addColumn(cTipo,cNombre,dbActual,nombre);
                     String valores = cNombre;
                     while (!ctx.getChild(contador + 1).getText().equals(")") && !ctx.getChild(contador + 1).getText().equals("CONSTRAINT")) {
 
@@ -125,70 +148,78 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                         cNombre = ctx.getChild(contador).getChild(0).getText();
                         cTipo = ctx.getChild(contador).getChild(1).getText();
                         cTipo = cTipo.toLowerCase();
-                        writer.write(cNombre + " " + cTipo);
-                        writer.newLine();
+                        creador.addColumn(cTipo,cNombre,dbActual,nombre);
+                        /*writer.write(cNombre + " " + cTipo);
+                        writer.newLine();*/
                         valores = valores + "," + cNombre;
                     }
+                    escritor.write(valores);
+                    escritor.close();
                     //Se agregan los constraints
                     while (!ctx.getChild(contador + 1).getText().equals(")")) {
                         contador = contador + 2;
                         if (ctx.getChild(contador).getText().toLowerCase().contains("primary")) {
                             primarykey = true;
-                            writer.write("PRIMARY KEY");
-                            writer.newLine();
+                            /*writer.write("PRIMARY KEY");
+                            writer.newLine();*/
                             String key = ctx.getChild(contador).getChild(0).getChild(0).getText();
-                            writer.write(key + " ");
+                            //writer.write(key + " ");
                             int contador2 = 4;
                             String param = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
-                            writer.write(param);
+                            //writer.write(param);
                             while (!ctx.getChild(contador).getChild(0).getChild(contador2 + 1).getText().contains(")")) {
                                 contador2 = contador2 + 2;
-                                param = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
-                                writer.write("," + param);
+                                param = param+","+ctx.getChild(contador).getChild(0).getChild(contador2).getText();
+                                //writer.write("," + param);
                             }
-                            writer.newLine();
+                            System.out.println("si entró");
+                            creador.addPrimaryKey(nombre,dbActual,key,param);
+                            //writer.newLine();
                         } else if (ctx.getChild(contador).getText().toLowerCase().contains("foreign")) {
-                            if (!primarykey) {
+                            /*if (!primarykey) {
                                 writer.write("PRIMARY KEY");
                                 writer.newLine();
-                            }
+                            }*/
                             primarykey = true;
-                            writer.write("FOREIGN KEY");
+                            //writer.write("FOREIGN KEY");
                             foreignkey = true;
-                            writer.newLine();
+                            //writer.newLine();
                             String name = ctx.getChild(contador).getChild(0).getChild(0).getText();
-                            writer.write(name + " ");
+                            //writer.write(name + " ");
                             int contador2 = 4;
                             String columna = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
-                            writer.write(columna + ",");
+                            //writer.write(columna + ",");
                             contador2 = contador2 + 3;
                             String tabla = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
-                            writer.write(tabla + ",");
+                            //writer.write(tabla + ",");
                             contador2 = contador2 + 2;
                             String columnaExt = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
-                            writer.write(columnaExt);
-                            writer.newLine();
+                            //writer.write(columnaExt);
+                            //writer.newLine();
+                            creador.addForeingKey(nombre,tabla,dbActual,name,columnaExt,columna);
+
                         } else if (ctx.getChild(contador).getText().toLowerCase().contains("check")) {
                             check = true;
-                            if (!primarykey) {
+                            /*if (!primarykey) {
                                 writer.write("PRIMARY KEY");
                                 writer.newLine();
                             }
                             if (!foreignkey) {
                                 writer.write("FOREIGN KEY");
                                 writer.newLine();
-                            }
+                            }*/
                             foreignkey = true;
                             primarykey = true;
-                            writer.write("CHECK");
-                            writer.newLine();
+                            //writer.write("CHECK");
+                            //writer.newLine();
                             String name = ctx.getChild(contador).getChild(0).getChild(0).getText();
                             String restriccion = ctx.getChild(contador).getChild(0).getChild(2).getText();
-                            writer.write(name + " " + restriccion);
-                            writer.newLine();
+                            /*writer.write(name + " " + restriccion);
+                            writer.newLine();*/
+                            creador.addCheck(dbActual,nombre,name,restriccion);
                         }
                     }
-                    if (!primarykey) {
+                    /*if (!primarykey) {
                         writer.write("PRIMARY KEY");
                         writer.newLine();
                     }
@@ -200,9 +231,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                         writer.write("CHECK");
                         writer.newLine();
                     }
-                    writer.close();
-                    escritor.write(valores);
-                    escritor.close();
+                    writer.close();*/
                     creador.sumarTabla(dbActual);
                 } catch (IOException e) {
                     System.out.println("No se creó el archivo de metadata.");
@@ -212,6 +241,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             else {
                 salida = salida + "No se ha escogido una base de datos actual." + '\n';
             }
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
         }
         return visitChildren(ctx);
     }
@@ -229,6 +261,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
 
                 salida = salida + creador.RenameTable(viejo, nuevo, dbActual) + '\n';
             }
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
         }
         return visitChildren(ctx);
     }
@@ -253,8 +288,12 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             //Si se borra una columna
             else if (accion.toLowerCase().contains("drop column")) {
                 String columna = ctx.getChild(3).getChild(0).getChild(2).getText();
-                System.out.println(columna);
                 salida = salida + creador.DropColumn(columna, dbActual, tabla) + '\n';
+            }
+            //Si se quiere borrar una constraint
+            else if(accion.toLowerCase().contains("drop constraint")){
+                String constraint = ctx.getChild(3).getChild(0).getChild(2).getText();
+                salida=salida+creador.dropConstraint(dbActual,tabla,constraint)+'\n';
             }
             //Si se agrega una constraint
             else if (accion.toLowerCase().contains("add constraint")) {
@@ -282,7 +321,32 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                     String columnaExt = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getChild(9).getText();
                     salida = salida + creador.addForeingKey(tabla, tablaExt, dbActual, ident, columnaExt, local);
                 }
+                else if(action.toLowerCase().contains("check")){
+                    String ident = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getChild(0).getText();
+                    System.out.println(ident);
+                    String exp = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getChild(2).getText();
+                    salida=salida+creador.addCheck(dbActual,tabla,ident,exp);
+                }
             }
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
+        return visitChildren(ctx);
+    }
+
+    @Override public String visitDropTable(GramaticaSQLParser.DropTableContext ctx) {
+        if(todobien){
+            String id = ctx.getChild(2).getText();
+            salida=salida+creador.DeleteDirectoryTable(id,dbActual);
+        }
+        return visitChildren(ctx);
+    }
+
+    @Override public String visitShowColumns(GramaticaSQLParser.ShowColumnsContext ctx) {
+        if(todobien) {
+            salida = salida + creador.showColumns(dbActual, ctx.getChild(3).getText());
+
         }
         return visitChildren(ctx);
     }

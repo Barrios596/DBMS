@@ -1,0 +1,5 @@
+USE DATABASE bd
+CREATE TABLE tabla (id int, nombre char(20), apellido char(20) CONSTRAINT primaria PRIMARY KEY (id) CONSTRAINT chequear CHECK (id>0))
+
+USE DATABASE bd
+DROP TABLE tabla

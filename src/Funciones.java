@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.WeakHashMap;
 
 public class Funciones {
     public String  CreateDirectory(String name) {
@@ -1193,7 +1194,41 @@ public class Funciones {
         try{
             BufferedReader br = new BufferedReader(new FileReader(input));
             String current;
-
+            ArrayList<String[]> columnas = AllColumnsAndTypes(tabla,bd);
+            salida="Las columnas de la tabla "+tabla+" junto a su tipo son las siguientes:\n";
+            for(int i = 0;i<columnas.size();i++){
+                salida=salida+columnas.get(i)[0]+": "+columnas.get(i)[1]+'\n';
+            }
+            salida=salida+"La llave primaria junto a las columnas que la conforman es la siguiente:\n";
+            while ((current=br.readLine())!=null){
+                if(current.contains("PRIMARY KEY")){
+                    current=br.readLine();
+                    while (!current.contains("FOREIGN KEY")){
+                        String nombre = current.substring(0,current.indexOf(' '));
+                        String resto = current.substring(current.indexOf(' ')+1);
+                        salida=salida+nombre+": "+resto+'\n';
+                        current=br.readLine();
+                    }
+                    current=br.readLine();
+                    salida=salida+"Las llaves foráneas son las siguientes:\n";
+                    while (!current.contains("CHECK")){
+                        String nombre = current.substring(0,current.indexOf(' '));
+                        salida=salida+nombre+": ";
+                        String resto = current.substring(current.indexOf(' ')+1);
+                        String[] arreglo = resto.split(",");
+                        salida=salida+arreglo[0]+"(columna local), "+arreglo[1]+"(tabla foránea), "+arreglo[2]+"(columna externa).\n";
+                        current=br.readLine();
+                    }
+                    current=br.readLine();
+                    salida=salida+"Las restricciones son las siguientes:\n";
+                    while (current!=null){
+                        String nombre = current.substring(0,current.indexOf(' '));
+                        String resto = current.substring(current.indexOf(' ')+1);
+                        salida=salida+nombre+": "+resto+'\n';
+                        current=br.readLine();
+                    }
+                }
+            }
         }
         catch (IOException e){
 
@@ -1226,11 +1261,13 @@ public class Funciones {
                 if (current.contains("PRIMARY KEY")) {
                     current= br.readLine();
                     if (current.contains("FOREIGN KEY")){
-                        salida=false;
                         bw.write(current + System.getProperty("line.separator"));
                     }
                     if (current.contains(nombreConstraint)){
                         salida=true;
+                    }
+                    else {
+                        bw.write(current+System.getProperty("line.separator"));
                     }
                 }
             }
@@ -1267,6 +1304,7 @@ public class Funciones {
             BufferedReader br = new BufferedReader(new FileReader(input));
             BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
 
+            System.out.println("esto es un debug");
             String current;
             while ((current = br.readLine()) != null) {
                 bw.write(current + System.getProperty("line.separator"));
@@ -1285,7 +1323,6 @@ public class Funciones {
 
                         }
                         else{
-                            salida=false;
                             bw.write(current + System.getProperty("line.separator"));
                         }
                         current=br.readLine();
@@ -1361,13 +1398,10 @@ public class Funciones {
         return salida;
 
     }
-    
-    
-        public ArrayList<String []> AllColumnsAndTypes (String nameTable, String actualDB) {
+    public ArrayList<String []> AllColumnsAndTypes (String nameTable, String actualDB) {
 
-        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + actualDB + "\\" + nameTable + "\\" + "Metadata.txt");
+        File file = new File("data\\" + actualDB + "\\" + nameTable + "\\" + "Metadata.txt");
         ArrayList<String []> columnAndTypes = new ArrayList<String[]>();
-
 
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -1386,9 +1420,9 @@ public class Funciones {
 
                         // Se realiza una append/add al ArrayList columnAndTypes
                         columnAndTypes.add(pairs);
-                        }
                     }
                 }
+            }
 
             br.close();
 
@@ -1398,14 +1432,13 @@ public class Funciones {
 
         } catch (IOException e) {
             String mensaje = "ERROR: Ocurrió una IOexception: No se pudo obtener las columnas" +
-                    "y sus tipos de la tabla";
+                    "y sus tipos de la tabla "+nameTable+".";
             System.out.println(mensaje);
             return columnAndTypes;
 
         }
     }
-    
-    
+
     /**
      * author Joice Miranda
      * @param nombreBD nombre de la base de daros
@@ -1416,21 +1449,23 @@ public class Funciones {
     public String dropConstraint (String nombreBD, String nombreTabla, String nombreConstraint){
         String mensaje="";
         boolean PK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
-        boolean FK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
-        boolean CHK = dropPrimaryKey(nombreBD,nombreTabla,nombreConstraint);
-        
+        boolean FK = dropForeignKey(nombreBD,nombreTabla,nombreConstraint);
+        boolean CHK = dropCheck(nombreBD,nombreTabla,nombreConstraint);
+        System.out.println(PK);
+        System.out.println(FK);
+        System.out.println(CHK);
         if (PK==true){
             mensaje=mensaje+"La llave primaria "+nombreConstraint+" fue eliminada";
-            
+
         }
-        else if (FK==true){
+        if (FK==true){
             mensaje=mensaje+"La llave primaria "+nombreConstraint+" fue eliminada";
         }
         else if (CHK==true){
             mensaje=mensaje+"El check "+nombreConstraint+" fue eliminado";
         }
         else{
-            mensaje="ERROR, no existe ningun contraint con el nombre"+ nombreConstraint;
+            mensaje="ERROR, no existe ningun contraint con el nombre "+ nombreConstraint;
         }
         return mensaje;
 

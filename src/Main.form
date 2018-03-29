@@ -33,6 +33,7 @@
           <component id="5d9b" class="javax.swing.JTextArea" binding="textArea2" default-binding="true">
             <constraints/>
             <properties>
+              <editable value="false"/>
               <font name="Microsoft YaHei UI Light" size="14" style="0"/>
             </properties>
           </component>
