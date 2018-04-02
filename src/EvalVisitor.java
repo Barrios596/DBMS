@@ -8,6 +8,7 @@
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
     //Se crea un objeto Funciones que tiene las funciones a utilizar
@@ -16,6 +17,9 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
     public String salida = "";
     //String que guarda el nombre de la base de datos actual
     public String dbActual = "";
+    //String que guarda el nombre de la tabla que se agregó por última vez (se usa para validar exp)
+    public String tablaActual ="";
+    //variable todobien indica si hay error o no, se inicia como true
     boolean todobien = true;
 
     /**
@@ -25,11 +29,15 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
      * @descr Método para crear una base de datos nueva, llama a CreateDirectory
      */
     @Override public String visitCreateDatabase(GramaticaSQLParser.CreateDatabaseContext ctx) {
+        //Si ya se habia encontrado un error antes, ya no se ejecuta la instruccion
         if(todobien) {
             String nombre = ctx.getChild(2).getText();
+            dbActual=nombre;
             salida = salida + creador.CreateDirectory(nombre) + '\n';
         }
+        //Si se detecta error, se cambia el estado de la variable todobien
         if(salida.contains("ERROR")){
+            creador.DeleteDirectory(dbActual);
             todobien=false;
         }
         return visitChildren(ctx);
@@ -116,6 +124,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                 boolean foreignkey = false;
                 boolean check = false;
                 String nombre = ctx.getChild(2).getText();
+                tablaActual=nombre;
                 //Se crea el directorio de la nueva bd
                 salida = salida + creador.CreateTable(nombre, dbActual) + '\n';
                 try {
@@ -139,16 +148,14 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                     writer.close();
                     /*writer.write(cNombre + " " + cTipo);
                     writer.newLine();*/
-                    creador.addColumn(cTipo,cNombre,dbActual,nombre);
+                    salida=salida+creador.addColumn(cTipo,cNombre,dbActual,nombre)+'\n';
                     String valores = cNombre;
                     while (!ctx.getChild(contador + 1).getText().equals(")") && !ctx.getChild(contador + 1).getText().equals("CONSTRAINT")) {
-
-                        System.out.println(ctx.getChild(contador + 1).getText());
                         contador = contador + 2;
                         cNombre = ctx.getChild(contador).getChild(0).getText();
                         cTipo = ctx.getChild(contador).getChild(1).getText();
                         cTipo = cTipo.toLowerCase();
-                        creador.addColumn(cTipo,cNombre,dbActual,nombre);
+                        salida=salida+creador.addColumn(cTipo,cNombre,dbActual,nombre)+'\n';
                         /*writer.write(cNombre + " " + cTipo);
                         writer.newLine();*/
                         valores = valores + "," + cNombre;
@@ -173,7 +180,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                                 //writer.write("," + param);
                             }
                             System.out.println("si entró");
-                            creador.addPrimaryKey(nombre,dbActual,key,param);
+                            salida=salida+creador.addPrimaryKey(nombre,dbActual,key,param)+'\n';
                             //writer.newLine();
                         } else if (ctx.getChild(contador).getText().toLowerCase().contains("foreign")) {
                             /*if (!primarykey) {
@@ -196,7 +203,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                             String columnaExt = ctx.getChild(contador).getChild(0).getChild(contador2).getText();
                             //writer.write(columnaExt);
                             //writer.newLine();
-                            creador.addForeingKey(nombre,tabla,dbActual,name,columnaExt,columna);
+                            salida=salida+creador.addForeingKey(nombre,tabla,dbActual,name,columnaExt,columna)+'\n';
 
                         } else if (ctx.getChild(contador).getText().toLowerCase().contains("check")) {
                             check = true;
@@ -239,10 +246,11 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
             }
             //esto es si no hay una base de datos escogida
             else {
-                salida = salida + "No se ha escogido una base de datos actual." + '\n';
+                salida = salida + "ERROR: No se ha escogido una base de datos actual." + '\n';
             }
         }
         if(salida.contains("ERROR")){
+            creador.DeleteDirectoryTable(tablaActual,dbActual);
             todobien=false;
         }
         return visitChildren(ctx);
@@ -321,6 +329,7 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
                     String columnaExt = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getChild(9).getText();
                     salida = salida + creador.addForeingKey(tabla, tablaExt, dbActual, ident, columnaExt, local);
                 }
+                //Si se agrega un check
                 else if(action.toLowerCase().contains("check")){
                     String ident = ctx.getChild(3).getChild(0).getChild(2).getChild(0).getChild(0).getText();
                     System.out.println(ident);
@@ -334,19 +343,169 @@ public class EvalVisitor extends GramaticaSQLBaseVisitor<String> {
         }
         return visitChildren(ctx);
     }
-
+    /**
+     * @Author Rodrigo Barrios
+     * @param ctx
+     * @return
+     * @descr   Elimina una tabla de una base de datos específica
+     */
     @Override public String visitDropTable(GramaticaSQLParser.DropTableContext ctx) {
         if(todobien){
             String id = ctx.getChild(2).getText();
             salida=salida+creador.DeleteDirectoryTable(id,dbActual);
         }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
         return visitChildren(ctx);
     }
-
+    /**
+     * @Author Rodrigo Barrios
+     * @param ctx
+     * @return
+     * @descr   Modifica una tabla en específico (agrega columna, las elimina o agrega constraints)
+     */
     @Override public String visitShowColumns(GramaticaSQLParser.ShowColumnsContext ctx) {
         if(todobien) {
             salida = salida + creador.showColumns(dbActual, ctx.getChild(3).getText());
 
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
+        return visitChildren(ctx);
+    }
+
+    @Override public String visitUpdateSet(GramaticaSQLParser.UpdateSetContext ctx) {
+        if(todobien ){
+            if(ctx.getChildCount()==4){
+                String tabla = ctx.getChild(1).getText();
+                ArrayList<String> columnas = new ArrayList<>();
+                ArrayList<String> valores = new ArrayList<>();
+                int saltos = ctx.getChild(3).getChildCount();
+                for(int i =0;i<saltos;i=i+2){
+                    String columna =ctx.getChild(3).getChild(i).getChild(0).getText();
+                    String valor =ctx.getChild(3).getChild(i).getChild(2).getText();
+                    columnas.add(columna);
+                    valores.add(valor);
+                    salida=salida+creador.Update(dbActual,tabla,columna,valor)+'\n';
+                }
+            }/*else{
+                String tabla = ctx.getChild(1).getText();
+                ArrayList<String> columnas = new ArrayList<>();
+                ArrayList<String> valores = new ArrayList<>();
+                int saltos = ctx.getChild(3).getChildCount();
+                for(int i =0;i<saltos;i=i+2){
+                    String columna =ctx.getChild(3).getChild(i).getChild(0).getText();
+                    String valor =ctx.getChild(3).getChild(i).getChild(2).getText();
+                    columnas.add(columna);
+                    valores.add(valor);
+                    String nombreColumna = ctx.getChild(5).getChild(0).getText();
+                    String symb = ctx.getChild(5).getChild(1).getText();
+                    String op2 = ctx.getChild(5).getChild(2).getText();
+                    salida=salida+creador.UpdateCond(dbActual,tabla,columna,valor,nombreColumna,op2,symb)+'\n';
+                }
+
+            }*/
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
+        return visitChildren(ctx);
+    }
+
+    /**
+     * author: Rodrigo Barrios
+     * @param ctx
+     * @return
+     * Se revisa que las locaciones ingresadas pertenezcan a la tabla usada
+     */
+    @Override public String visitLocation(GramaticaSQLParser.LocationContext ctx) {
+        if(todobien){
+            ArrayList<String[]> columnas = creador.AllColumnsAndTypes(tablaActual,dbActual);
+            boolean esta = false;
+            for(int i =0;i<columnas.size();i++){
+                if(columnas.get(i)[0].equals(ctx.getText())){
+                    System.out.println(columnas.get(i)[0]);
+                    esta = true;
+                }
+            }
+            if(!esta){
+                salida=salida+"ERROR: la variable "+ctx.getText()+" no está declarada en la tabla."+'\n';
+                creador.DeleteDirectoryTable(tablaActual,dbActual);
+            }
+        }
+        if(salida.contains("ERROR")){
+            todobien=false;
+        }
+        return visitChildren(ctx);
+    }
+
+    /**
+     * author Rodrigo Barrios
+     * @param ctx
+     * @return
+     * desc: llama al metodo de insertar
+     */
+    @Override public String visitInsertInto(GramaticaSQLParser.InsertIntoContext ctx) {
+        if(todobien) {
+            String tabla = ctx.getChild(2).getText();
+            //Arraylist con las columnas y los valores que se le pasan a la funcion insertar
+            ArrayList<String> columnas = new ArrayList<>();
+            ArrayList<String> valores = new ArrayList<>();
+            if (ctx.getChild(3).getText().equals("(")) {
+                int contador = 4;
+                String id = ctx.getChild(contador).getText();
+                columnas.add(id);
+                while (!ctx.getChild(contador + 1).getText().equals(")")) {
+                    contador = contador + 2;
+                    id = ctx.getChild(contador).getText();
+                    columnas.add(id);
+                }
+                contador = contador + 4;
+                String valor = ctx.getChild(contador).getText();
+                valores.add(valor);
+                while (!ctx.getChild(contador + 1).getText().equals(")")) {
+                    contador = contador + 2;
+                    valor = ctx.getChild(contador).getText();
+                    valores.add(valor);
+                }
+            } else {
+                int contador = 5;
+                String valor = ctx.getChild(contador).getText();
+                valores.add(valor);
+                while (!ctx.getChild(contador + 1).getText().equals(")")) {
+                    contador = contador + 2;
+                    valor = ctx.getChild(contador).getText();
+                    valores.add(valor);
+                }
+            }
+            InsertInto insertador = new InsertInto();
+            salida = salida + insertador.Insertar(dbActual, tabla, columnas, valores)+'\n';
+            if (salida.contains("ERROR")) {
+                todobien = false;
+            }
+        }
+        return visitChildren(ctx);
+    }
+
+    /**
+     * Author: Rodrigo Barrios
+     * @param ctx
+     * @return
+     * Elimina todas las entradas de una tabla
+     */
+    @Override public String visitDeleteFrom(GramaticaSQLParser.DeleteFromContext ctx) {
+        if(todobien) {
+            if (ctx.getChildCount() == 3) {
+                String tabla = ctx.getChild(2).getText();
+                salida = salida + creador.deleteEverything(tabla, dbActual)+'\n';
+            }else {
+
+            }
+            if(salida.contains("ERROR")){
+                todobien=false;
+            }
         }
         return visitChildren(ctx);
     }

@@ -1,3 +1,9 @@
+/* Universidad del Valle de Guatemala
+*  Bases de Datos
+*  Rodrigo Barrios, José Antonio Ramírez, Joice Miranda
+*  Clase visitante Funciones.java
+*  Esta clase contiene funciones que editan e insertan los archivos de las bases de datos
+ */
 import java.io.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -1470,8 +1476,6 @@ public class Funciones {
         return mensaje;
 
     }
-    
-    
     /**
      * author Joice Miranda
      * @param nombreBD nomnbre de la base de datos
@@ -1507,6 +1511,7 @@ public class Funciones {
             BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
             //obtener el indice de la columna ingresada
             String primerLinea= br.readLine();
+            bw.write(primerLinea +System.getProperty("line.separator"));
             String [] columnas= primerLinea.split(",");
             for (int i=0;i<columnas.length;i++){
                 if (columnas[i].equals(nombrecolumna)){
@@ -1520,21 +1525,87 @@ public class Funciones {
                 String[] parts= current.split(",");
                 parts[index]=valorNuevo;
                 for (int a=0;a<parts.length;a++){
-                    lineaJunta =lineaJunta+","+parts[a];
+                    lineaJunta =lineaJunta+parts[a]+",";
                 }
                 cont=cont+1;
-                bw.write(lineaJunta +System.getProperty("line.separator"));
+                bw.write(lineaJunta.substring(0,lineaJunta.length()-1) +System.getProperty("line.separator"));
 
             }
             mensaje="UPDATE "+ cont+" con éxito";
+            bw.close();
+            br.close();
+            Delete(input);
+            boolean succesful = temp.renameTo(input);
         }
+
         catch (IOException e){
             mensaje="ERROR. No existe la tabla "+nombreTabla+" en la base de datos "+nombreBD;
         }
         return mensaje;
     }
-    
-     /**
+
+    /**
+     * author Rodrigo Barrios
+     * @param tabla: tabla de la cual se desea borrar sus entradas
+     * @param dbActual: base de datos donde se encuentra la tabla
+     * @return salida: mensaje de salida como ëxito o error
+     */
+    public String deleteEverything(String tabla, String dbActual){
+        String salida = "";
+        File input = new File("data\\"+dbActual+"\\"+tabla+"\\valores.txt");
+        File temp = new File("data\\"+dbActual+"\\"+tabla+"\\temp.txt");
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+            String linea = br.readLine();
+            bw.write(linea);
+            int cont =0;
+            while ((linea=br.readLine())!=null){
+                cont++;
+            }
+            bw.close();
+            br.close();
+            Delete(input);
+            boolean succesful = temp.renameTo(input);
+            reiniciarEntradas(dbActual,tabla);
+            salida=salida+"Se eliminaron "+cont+" registros de la tabla "+tabla+".";
+        }catch (IOException e){
+            salida=salida+"ERROR: la base de datos "+dbActual+" o la tabla "+tabla+" no existe.";
+        }
+        return salida;
+    }
+
+    /**
+     * author: Rodrigo Barrios
+     * @param dbActual
+     * @param tabla
+     * desc: reinicia la cantidad de entradas de una tabla en específico
+     */
+    public void reiniciarEntradas(String dbActual, String tabla){
+        try {
+            File input = new File("data\\"+dbActual+"\\Metadata.txt");
+            File temp = new File("data\\"+dbActual+"\\copia.txt");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+            BufferedReader reader = new BufferedReader(new FileReader(input));
+            String current;
+            while ((current = reader.readLine()) != null){
+                String [] esplit = current.split(",");
+                if(esplit[0].equals(tabla)){
+                    System.out.println(esplit);
+                    current=esplit[0]+",0";
+                }
+                writer.write(current+System.getProperty("line.separator"));
+            }
+            reader.close();
+            writer.close();
+            Delete(input);
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+        }catch (IOException e){
+            System.out.println("ERROR: No se encontró el archivo de metadata.");
+        }
+    }
+    /**
      * author Joice Miranda
      * @param op1 operando 1
      * @param op2 operando 2
@@ -1612,7 +1683,7 @@ public class Funciones {
      * @param nombreColumnaCond nombre de la columna que tiene la condicion
      * @return mensaje de error o exito
      */
-    public String UpdateCond (String nombreBD, String nombreTabla, String nombrecolumna, String valorNuevo, String nombreColumnaCond){
+    public String UpdateCond (String nombreBD, String nombreTabla, String nombrecolumna, String valorNuevo, String nombreColumnaCond, String op2, String sym){
         String mensaje="";
         boolean existe=false;
         boolean condExist=false;
@@ -1672,20 +1743,19 @@ public class Funciones {
                 String[] parts= current.split(",");
 
                 //Toma la condicion y la divide en op1, op2, y sym
-                String [] condicion = parts[indexCond].split(" ");
                 boolean cumple=false;
-                if (condicion[1].equals("<") ||condicion[1].equals(">") || condicion[1].equals("<=") || condicion[1].equals(">=") ||condicion[1].equals("!=") || condicion[1].equals("=") ){
-                    cumple = cumpleCondNum(Float.parseFloat(condicion[0]), Float.parseFloat(condicion[2]), condicion[1]);
+                if (sym.equals("<") ||sym.equals(">") || sym.equals("<=") || sym.equals(">=") ||sym.equals("!=") || sym.equals("=") ){
+                    cumple = cumpleCondNum(Float.parseFloat(nombreColumnaCond), Float.parseFloat(op2), sym);
                 }
 
-                else if (condicion[1].equals("=") ||condicion[1].equals("!=") ){
-                    cumple=cumpleCondString(condicion[0], condicion[1], condicion[2]);
+                else if (sym.equals("=") ||sym.equals("!=") ){
+                    cumple=cumpleCondString(nombreColumnaCond, sym, op2);
                 }
-                
+
                 else{
                     return "Hubo un error en la condicion " + parts[indexCond];
                 }
-                
+
                 if (cumple==true){
                     parts[index]=valorNuevo;
                     for (int a=0;a<parts.length;a++){
@@ -1697,9 +1767,12 @@ public class Funciones {
                 else{
                     bw.write(current +System.getProperty("line.separator"));
                 }
-                
-                
 
+                bw.close();
+                br.close();
+                Delete(input);
+                boolean success = temp.renameTo(input);
+                System.out.println(success);
             }
             mensaje="UPDATE "+ cont+" con éxito";
         }
@@ -1708,8 +1781,6 @@ public class Funciones {
         }
         return mensaje;
     }
-
-
 }
 
 

@@ -152,7 +152,7 @@ check: IDX CHECK (exp);
 
 exp: (cond | notOp) ;
 
-location: IDX ('.' IDX)?;
+location: IDX ;
 
 operacion: location | literal;
 
@@ -192,7 +192,7 @@ showColumns: SHOW COLUMNS FROM IDX ;
 
 // Gramatica para parte 2
 
-insertInto: INSERT INTO IDX ('(' IDX ')')? VALUES '(' literal ')';
+insertInto: INSERT INTO IDX ('(' IDX (',' IDX)*')')? VALUES '(' literal (',' literal)* ')';
 
 updateSet: UPDATE IDX SET updateColumas (WHERE exp)? ;
 updateColumas: cambio (',' cambio)*;

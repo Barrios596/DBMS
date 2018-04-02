@@ -1,3 +1,9 @@
+/* Universidad del Valle de Guatemala
+*  Bases de Datos
+*  Rodrigo Barrios, José Antonio Ramírez, Joice Miranda
+*  Clase visitante InsertInto.java
+*
+*/
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,36 +33,37 @@ public class InsertInto {
     public String Insertar(String dbActual, String nombreTabla, ArrayList<String> columnas, ArrayList<String> valores) {
 
         // Inicializacion de Mensaje a UI
-        String mensaje = "No hizo nada";
+        String mensaje = "";
 
         // Se obtiene la cantidad de columnas ingresadas para saber de que forma trabajar.
-        Integer cantColumnas = columnas.size();
+        Integer cantColumns = columnas.size();
 
         // Si la cantidad de columnas es 0, se trabaja solo con los valores ingresados.
-        if (cantColumnas == 0) {
+        if (cantColumns == 0) {
+            System.out.println("Entró");
 
             /*
-             Se chequea la  de columnas que hay en esa tabla.
-             La cantidad de valores ingresados solo pueden ser <= cantidad de columnas de la tabla
+             Se chequea la cantidad de valores y cantidad de columnas que hay en esa tabla.
+             La cantidad de valores solo pueden ser <= cantidad de columnas de la tabla
              */
-            Integer cantValores = valores.size();
+            Integer cantValues = valores.size();
 
-            ArrayList<String []> columnasTipos = TodasColumnasYTipos( dbActual, nombreTabla);
-            cantColumnas = columnasTipos.size();
-
-            if (cantValores <= cantColumnas){
+            ArrayList<String []> columnasTipos = TodasColumnasYTipos(dbActual, nombreTabla);
+            cantColumns = columnasTipos.size();
+            System.out.println(cantColumns);
+            if (cantValues <= cantColumns){
 
                 /*
                  * Si la cantidad de valores a ingresar son igual a la cantidad de columnas disponibles
                  * se utiliza el metodo de IngresoDirecto().
                  */
 
-                if (cantValores.equals(cantColumnas)){
+                if (cantValues.equals(cantColumns)){
                     if(VerificacionDeTipos(columnasTipos, valores)) {
 
                         ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
                         IngresoDirecto(dbActual, nombreTabla, valoresParseados);
-                        sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
+                        sumarIngresoMetadata(dbActual,nombreTabla,cantValues);
 
                         mensaje = "Se ingresaron correctamente los datos al archivo de valores de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
@@ -75,14 +82,14 @@ public class InsertInto {
                      * con valores nulos.
                      */
 
-                }else if (cantValores < cantColumnas){
+                }else if (cantValues < cantColumns){
 
                     /*
                     Se obtiene la misma cantidad de  valores y cantidad de columnas para poder hacer la verificacion
                     de tipos entre las columnas y los valores.
                      */
 
-                     Integer resta = cantColumnas - cantValores;
+                     Integer resta = cantColumns - cantValues;
                      for (int i = 0; i<resta; i++){
                          Integer ultimoelem = columnasTipos.size();
                          columnasTipos.remove(ultimoelem);
@@ -91,9 +98,8 @@ public class InsertInto {
                      if(VerificacionDeTipos(columnasTipos, valores)) {
 
                          ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
-                         IngresoSemiDirecto(dbActual, nombreTabla, valoresParseados, cantColumnas);
-                         sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
-
+                         IngresoSemiDirecto(dbActual, nombreTabla, valoresParseados, cantColumns);
+                         sumarIngresoMetadata(dbActual,nombreTabla,cantValues);
                         mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
                         System.out.println(mensaje);
@@ -122,12 +128,11 @@ public class InsertInto {
           * Se trabaja con el metodo IngresoIndirecto.
           */
 
-        }else if (cantColumnas > 0){
+        }else if (cantColumns > 0){
 
 
             ArrayList<String[]> columnasTabla = TodasColumnasYTipos(dbActual, nombreTabla);
-            cantColumnas = columnasTabla.size();
-            Integer cantValores = valores.size();
+            cantColumns = columnasTabla.size();
 
             ArrayList<String[]> columnasSeleccionadas = new ArrayList<>();
 
@@ -143,6 +148,7 @@ public class InsertInto {
 
             for (int i = 0; i<columnas.size(); i++){
                 String columnaIngresada = columnas.get(i);
+                System.out.println(columnaIngresada);
                 for (int j = 0; j<columnasTabla.size(); j++){
                     String pointerColumna = columnasTabla.get(j)[0];
                     if (String.valueOf(columnaIngresada).equals(String.valueOf(pointerColumna))){
@@ -164,11 +170,10 @@ public class InsertInto {
             // Verificacion que cada una de las columnas se encuentre en la tabla.
             if (contador.equals(columnas.size())){
                 if (VerificacionDeTipos(columnasSeleccionadas, valores)){
-
+                    int cantValues = valores.size();
                     ArrayList<String> valoresParseados = ParseoValores(columnasSeleccionadas, valores);
-                    IngresoIndirecto(dbActual, nombreTabla, valoresParseados, posiciones, cantColumnas);
-                    sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
-
+                    IngresoIndirecto(dbActual, nombreTabla, valoresParseados, posiciones, cantColumns);
+                    sumarIngresoMetadata(dbActual,nombreTabla,cantValues);
                     mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
                             nombreTabla + "de la base de datos: " + dbActual;
                     System.out.println(mensaje);
@@ -184,7 +189,7 @@ public class InsertInto {
 
             } else {
                 mensaje = "ERROR: Una de las columnas ingresadas por el usuario no se encuentra dentro" +
-                        "de la tabla.";
+                        " de la tabla.";
                 System.out.println(mensaje);
                 return mensaje;
             }
@@ -201,9 +206,9 @@ public class InsertInto {
 
     public ArrayList<String []> TodasColumnasYTipos(String dbActual, String nombreTabla) {
 
-        File file = new File("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + dbActual + "\\" + nombreTabla + "\\" + "Metadata.txt");
+        File file = new File("data\\" + dbActual + "\\" + nombreTabla + "\\" + "Metadata.txt");
         ArrayList<String []> columnasTipos = new ArrayList<String[]>();
-
+        System.out.println(file.getAbsolutePath());
 
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
@@ -231,7 +236,7 @@ public class InsertInto {
 
         } catch (IOException e) {
             String mensaje = "ERROR: Ocurrió una IOexception: No se pudo obtener las columnas" +
-                    "y los tipos de cada columna";
+                    " y los tipos de cada columna";
             System.out.println(mensaje);
             return columnasTipos;
 
@@ -415,9 +420,8 @@ public class InsertInto {
 
     public void IngresoDirecto(String dbActual, String nombreTabla, ArrayList<String> valores){
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + dbActual +
+            BufferedWriter writer = new BufferedWriter(new FileWriter("data\\" + dbActual +
                     "\\" + nombreTabla + "\\" + "valores.txt", true));
-
             String lineaValores = "";
 
             // Se hace una nueva linea con los valores ingresados.
@@ -426,13 +430,13 @@ public class InsertInto {
             }
 
             // Se realiza un append de la linea al archivo de texto valores.txt
-            writer.append(lineaValores);
+            writer.append(lineaValores.substring(1));
             writer.newLine();
             writer.close();
 
         }catch(Exception e){
             String mensaje = "No se pudo escribir en el archivo valores.txt" +
-                    "de la tabla: " + nombreTabla;
+                    " de la tabla: " + nombreTabla;
             System.out.println(mensaje);
         }
     }
@@ -447,7 +451,7 @@ public class InsertInto {
 
     public void IngresoSemiDirecto(String dbActual, String nombreTabla, ArrayList<String> valores, Integer cantColumns){
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + dbActual +
+            BufferedWriter writer = new BufferedWriter(new FileWriter("data\\" + dbActual +
                     "\\" + nombreTabla + "\\" + "valores.txt", true));
 
             String lineaValores = "";
@@ -463,28 +467,20 @@ public class InsertInto {
                 lineaValores = lineaValores + "," + String.valueOf("null");
             }
 
-            writer.append(lineaValores);
+            writer.append(lineaValores.substring(1));
             writer.newLine();
             writer.close();
 
         }catch(Exception e){
             String mensaje = "No se pudo escribir en el archivo valores.txt" +
-                    "de la tabla: " + nombreTabla;
+                    " de la tabla: " + nombreTabla;
             System.out.println(mensaje);
         }
     }
 
-    /**
-     *
-     * @param dbActual El nombre de la DB a la que apunta
-     * @param nombreTabla El nombre de la tabla a la que apunta
-     * @param valores Los valores que se quieren ingresar en el archivo
-     * @param posiciones Las posiciones de las columnas a las que pertenece cada valor
-     * @param cantColumns La cantidad de columnas que existe en esa tabla
-     */
     public  void IngresoIndirecto(String dbActual, String nombreTabla, ArrayList<String> valores, List posiciones, Integer cantColumns){
         try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + dbActual +
+            BufferedWriter writer = new BufferedWriter(new FileWriter("data\\" + dbActual +
                     "\\" + nombreTabla + "\\" + "valores.txt", true));
 
             String lineaValores = "";
@@ -497,32 +493,33 @@ public class InsertInto {
 
             Integer cantValores = valores.size();
 
-            for (int j = 0; j < cantValores; j++){
-                String stackValor = valores.get(valores.size());
+            System.out.println("data\\" + dbActual + "\\" + nombreTabla + "\\" + "valores.txt");
+            /*for (int j = 0; j < cantValores; j++){
+                String stackValor = valores.get(valores.size()-1);
                 stackValores.push(stackValor);
-                valores.remove(valores.size());
-            }
+                valores.remove(valores.size()-1);
+            }*/
 
             // Construccion de la nueva linea
             for (int i = 0; i<cantColumns; i++){
                 if (posiciones.contains(i)){
-                    lineaValores = lineaValores + "," + String.valueOf(stackValores.pop());
+                    int indice = posiciones.indexOf(i);
+                    lineaValores = lineaValores + "," + String.valueOf(valores.get(indice));
                 } else {
                     lineaValores = lineaValores + "," + String.valueOf("null");
                 }
             }
 
-            writer.append(lineaValores);
+            writer.append(lineaValores.substring(1));
             writer.newLine();
             writer.close();
 
-        }catch(Exception e){
+        }catch(IOException e){
             String mensaje = "No se pudo escribir en el archivo valores.txt" +
-                    "de la tabla: " + nombreTabla;
+                    " de la tabla: " + nombreTabla;
             System.out.println(mensaje);
         }
     }
-
     /**
      *
      * @param dbActual El nombre de la DB a la que apunta
@@ -533,7 +530,7 @@ public class InsertInto {
 
         try {
             File input = new File("data\\" + dbActual + "\\" + "Metadata.txt");
-            File temp = new File("data\\" + dbActual + "\\" + "Metadata.txt");
+            File temp = new File("data\\" + dbActual + "\\" + "temporal.txt");
 
 
             BufferedReader reader = new BufferedReader(new FileReader(input));
@@ -555,7 +552,7 @@ public class InsertInto {
                     String indice = current.substring(current.indexOf(',') + 1);
 
                     int cantidad = Integer.parseInt(indice);
-                    cantidad = cantidad +cantValores;
+                    cantidad ++;
 
                     indice = String.valueOf(cantidad);
                     current = inicial + ',' + indice;
@@ -620,5 +617,4 @@ public class InsertInto {
             System.out.println("El archivo fue eliminado: " + file.getAbsolutePath());
         }
     }
-
 }

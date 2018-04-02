@@ -1,3 +1,10 @@
+/* Universidad del Valle de Guatemala
+*  Bases de Datos
+*  Rodrigo Barrios, José Antonio Ramírez, Joice Miranda
+*  Clase visitante Main.java
+*  Clase principal que contiene la GUI
+*/
+
 import org.antlr.v4.gui.TreeViewer;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;

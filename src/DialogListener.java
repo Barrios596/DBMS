@@ -1,9 +1,8 @@
-/*
-* Universidad del Valle de Guatemala
-* Construcción de Compiladores
-* 1er ciclo de 2018
-* Rodrigo Eduardo Barrios Estrada
-* DecafMain.java
+/* Universidad del Valle de Guatemala
+*  Bases de Datos
+*  Rodrigo Barrios, José Antonio Ramírez, Joice Miranda
+*  Clase visitante DialogListener.java
+*  Este programa muestra los errores sintácticos en una ventana nueva
 * OJO, me basé en un programa que encontré en el capítulo 9 del libro oficial para el uso de ANTLR4, aquí el link al PDF:
  * http://www4.di.uminho.pt/~gepl/GQE/documents/books/Pragmatic.The.Definitive.ANTLR.4.Reference.Jan.2013.pdf
  */
