@@ -27,35 +27,36 @@ public class InsertInto {
     public String Insertar(String dbActual, String nombreTabla, ArrayList<String> columnas, ArrayList<String> valores) {
 
         // Inicializacion de Mensaje a UI
-        String mensaje = "";
+        String mensaje = "No hizo nada";
 
         // Se obtiene la cantidad de columnas ingresadas para saber de que forma trabajar.
-        Integer cantColumns = columnas.size();
+        Integer cantColumnas = columnas.size();
 
         // Si la cantidad de columnas es 0, se trabaja solo con los valores ingresados.
-        if (cantColumns == 0) {
+        if (cantColumnas == 0) {
 
             /*
-             Se chequea la cantidad de valores y cantidad de columnas que hay en esa tabla.
-             La cantidad de valores solo pueden ser <= cantidad de columnas de la tabla
+             Se chequea la  de columnas que hay en esa tabla.
+             La cantidad de valores ingresados solo pueden ser <= cantidad de columnas de la tabla
              */
-            Integer cantValues = valores.size();
+            Integer cantValores = valores.size();
 
             ArrayList<String []> columnasTipos = TodasColumnasYTipos(nombreTabla, dbActual);
-            cantColumns = columnasTipos.size();
+            cantColumnas = columnasTipos.size();
 
-            if (cantValues <= cantColumns){
+            if (cantValores <= cantColumnas){
 
                 /*
                  * Si la cantidad de valores a ingresar son igual a la cantidad de columnas disponibles
                  * se utiliza el metodo de IngresoDirecto().
                  */
 
-                if (cantValues.equals(cantColumns)){
+                if (cantValores.equals(cantColumnas)){
                     if(VerificacionDeTipos(columnasTipos, valores)) {
 
                         ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
                         IngresoDirecto(dbActual, nombreTabla, valoresParseados);
+                        sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
 
                         mensaje = "Se ingresaron correctamente los datos al archivo de valores de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
@@ -74,14 +75,14 @@ public class InsertInto {
                      * con valores nulos.
                      */
 
-                }else if (cantValues < cantColumns){
+                }else if (cantValores < cantColumnas){
 
                     /*
                     Se obtiene la misma cantidad de  valores y cantidad de columnas para poder hacer la verificacion
                     de tipos entre las columnas y los valores.
                      */
 
-                     Integer resta = cantColumns - cantValues;
+                     Integer resta = cantColumnas - cantValores;
                      for (int i = 0; i<resta; i++){
                          Integer ultimoelem = columnasTipos.size();
                          columnasTipos.remove(ultimoelem);
@@ -90,7 +91,8 @@ public class InsertInto {
                      if(VerificacionDeTipos(columnasTipos, valores)) {
 
                          ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
-                         IngresoSemiDirecto(dbActual, nombreTabla, valoresParseados, cantColumns);
+                         IngresoSemiDirecto(dbActual, nombreTabla, valoresParseados, cantColumnas);
+                         sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
 
                         mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
@@ -120,11 +122,12 @@ public class InsertInto {
           * Se trabaja con el metodo IngresoIndirecto.
           */
 
-        }else if (cantColumns > 0){
+        }else if (cantColumnas > 0){
 
 
             ArrayList<String[]> columnasTabla = TodasColumnasYTipos(dbActual, nombreTabla);
-            cantColumns = columnasTabla.size();
+            cantColumnas = columnasTabla.size();
+            Integer cantValores = valores.size();
 
             ArrayList<String[]> columnasSeleccionadas = new ArrayList<>();
 
@@ -140,8 +143,8 @@ public class InsertInto {
 
             for (int i = 0; i<columnas.size(); i++){
                 String columnaIngresada = columnas.get(i);
-                for (int j = 0; i<columnasTabla.size(); j++){
-                    String pointerColumna = columnasTabla.get(i)[0];
+                for (int j = 0; j<columnasTabla.size(); j++){
+                    String pointerColumna = columnasTabla.get(j)[0];
                     if (String.valueOf(columnaIngresada).equals(String.valueOf(pointerColumna))){
                         contador ++;
                         /*
@@ -163,7 +166,8 @@ public class InsertInto {
                 if (VerificacionDeTipos(columnasSeleccionadas, valores)){
 
                     ArrayList<String> valoresParseados = ParseoValores(columnasSeleccionadas, valores);
-                    IngresoIndirecto(dbActual, nombreTabla, valoresParseados, posiciones, cantColumns);
+                    IngresoIndirecto(dbActual, nombreTabla, valoresParseados, posiciones, cantColumnas);
+                    sumarIngresoMetadata( dbActual, nombreTabla, cantValores);
 
                     mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
                             nombreTabla + "de la base de datos: " + dbActual;
@@ -470,6 +474,14 @@ public class InsertInto {
         }
     }
 
+    /**
+     *
+     * @param dbActual El nombre de la DB a la que apunta
+     * @param nombreTabla El nombre de la tabla a la que apunta
+     * @param valores Los valores que se quieren ingresar en el archivo
+     * @param posiciones Las posiciones de las columnas a las que pertenece cada valor
+     * @param cantColumns La cantidad de columnas que existe en esa tabla
+     */
     public  void IngresoIndirecto(String dbActual, String nombreTabla, ArrayList<String> valores, List posiciones, Integer cantColumns){
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\Users\\Jose Ramirez\\Downloads\\Test\\" + dbActual +
@@ -510,4 +522,103 @@ public class InsertInto {
             System.out.println(mensaje);
         }
     }
+
+    /**
+     *
+     * @param dbActual El nombre de la DB a la que apunta
+     * @param nombreTabla El nombre de la tabla a la que apunta
+     */
+
+    public void sumarIngresoMetadata(String dbActual, String nombreTabla, Integer cantValores){
+
+        try {
+            File input = new File("data\\" + dbActual + "\\" + "Metadata.txt");
+            File temp = new File("data\\" + dbActual + "\\" + "Metadata.txt");
+
+
+            BufferedReader reader = new BufferedReader(new FileReader(input));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(temp));
+
+            String current;
+
+            while ((current = reader.readLine()) != null){
+                String[] pares = current.split(",");
+                String pointeNameTable = pares[0];
+
+                if(pointeNameTable.equals(nombreTabla)){
+
+                    /*
+                    Se toma el ultimo String que guarda la cantidad de registros en esa tabla
+                    Y se suma la cantidad de valores que se ingresaron.
+                     */
+                    String inicial = current.substring(0,current.indexOf(','));
+                    String indice = current.substring(current.indexOf(',') + 1);
+
+                    int cantidad = Integer.parseInt(indice);
+                    cantidad = cantidad +cantValores;
+
+                    indice = String.valueOf(cantidad);
+                    current = inicial + ',' + indice;
+                }
+                writer.write(current+System.getProperty("line.separator"));
+            }
+            reader.close();
+            writer.close();
+            Delete(input);
+
+            boolean successful = temp.renameTo(input);
+            System.out.println(successful);
+
+        }catch (IOException e){
+            System.out.println("ERROR: No se encontró el archivo de metadata.txt que guarda la cantidad" +
+                    "de registros de la tabla: " + nombreTabla);
+        }
+
+    }
+
+    public static void Delete(File file)
+            throws IOException {
+
+        if(file.isDirectory()){
+
+            // Si el directorio se encuentra vacio, entonces se elimina
+            if(file.list().length==0){
+
+                file.delete();
+                System.out.println("El directorio fue eliminado: "
+                        + file.getAbsolutePath());
+
+            }
+            /*
+            Si el directorio no se encuentra vacio, lista todos los elemntos del directorio
+            y elimina cada uno de estos.
+             */
+            else{
+                //list all the directory contents
+                String files[] = file.list();
+
+                for (String temp : files) {
+                    //construct the file structure
+                    File fileDelete = new File(file, temp);
+
+                    //recursive delete
+                    Delete(fileDelete);
+
+                }
+
+                //check the directory again, if empty then delete it
+                if(file.list().length==0){
+                    file.delete();
+                    System.out.println("El directorio fue eliminado: "
+                            + file.getAbsolutePath());
+                }
+            }
+
+        }else{
+            // Si el archivo no es un directorio, entonces lo elimina
+            file.delete();
+            System.out.println("El archivo fue eliminado: " + file.getAbsolutePath());
+        }
+    }
+
 }
