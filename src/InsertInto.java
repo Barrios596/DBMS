@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Descripcion: Esta clase maneja cada uno de los metodos para ingresar valores a un archivos de texto que es utilizada
@@ -24,6 +25,9 @@ public class InsertInto {
      */
 
     public String Insertar(String dbActual, String nombreTabla, ArrayList<String> columnas, ArrayList<String> valores) {
+
+        // Inicializacion de Mensaje a UI
+        String mensaje = "";
 
         // Se obtiene la cantidad de columnas ingresadas para saber de que forma trabajar.
         Integer cantColumns = columnas.size();
@@ -53,12 +57,12 @@ public class InsertInto {
                         ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
                         IngresoDirecto(dbActual, nombreTabla, valoresParseados);
 
-                        String mensaje = "Se ingresaron correctamente los datos al archivo de valores de la tabla: " +
+                        mensaje = "Se ingresaron correctamente los datos al archivo de valores de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
                         System.out.println(mensaje);
                         return mensaje;
                     }else{
-                        String mensaje = "ERROR: Alguno de los valores ingresados no se encuentra" +
+                        mensaje = "ERROR: Alguno de los valores ingresados no se encuentra" +
                                 "en la forma del tipo de la columna.";
                         System.out.println(mensaje);
                         return mensaje;
@@ -88,13 +92,13 @@ public class InsertInto {
                          ArrayList<String> valoresParseados = ParseoValores(columnasTipos, valores);
                          IngresoSemiDirecto(dbActual, nombreTabla, valoresParseados, cantColumns);
 
-                        String mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
+                        mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
                                 nombreTabla + "de la base de datos: " + dbActual;
                         System.out.println(mensaje);
                         return mensaje;
 
                      }else{
-                        String mensaje = "ERROR: Alguno de los valores ingresados no se encuentra" +
+                        mensaje = "ERROR: Alguno de los valores ingresados no se encuentra" +
                                 "en la forma del tipo de la columna.";
                         System.out.println(mensaje);
                         return mensaje;
@@ -106,7 +110,7 @@ public class InsertInto {
                 * de ERROR en la UI.
                 */
             }else{
-                String mensaje = "ERROR: La cantidad de valores sobrepasa la cantidad de columnas en esa tabla";
+                mensaje = "ERROR: La cantidad de valores sobrepasa la cantidad de columnas en esa tabla";
                 System.out.println(mensaje);
                 return mensaje;
             }
@@ -138,7 +142,7 @@ public class InsertInto {
                 String columnaIngresada = columnas.get(i);
                 for (int j = 0; i<columnasTabla.size(); j++){
                     String pointerColumna = columnasTabla.get(i)[0];
-                    if (String.valueOf(columnaIngresada).equals(String.valueOf(columnasTabla))){
+                    if (String.valueOf(columnaIngresada).equals(String.valueOf(pointerColumna))){
                         contador ++;
                         /*
                         Las columnas seleccionadas seran las columnas de la tabla que tambien estan en las columnas
@@ -159,18 +163,29 @@ public class InsertInto {
                 if (VerificacionDeTipos(columnasSeleccionadas, valores)){
 
                     ArrayList<String> valoresParseados = ParseoValores(columnasSeleccionadas, valores);
+                    IngresoIndirecto(dbActual, nombreTabla, valoresParseados, posiciones, cantColumns);
 
+                    mensaje = "Se ingresaron correctamente los datos al archivo de valores.txt de la tabla: " +
+                            nombreTabla + "de la base de datos: " + dbActual;
+                    System.out.println(mensaje);
+                    return mensaje;
+
+                }else{
+                    mensaje = "ERROR: Alguno de los valores ingresados no se encuentra" +
+                            "en la forma del tipo de la columna.";
+                    System.out.println(mensaje);
+                    return mensaje;
                 }
 
 
             } else {
-                String mensaje = "ERROR: Una de las columnas ingresadas por el usuario no se encuentra dentro" +
+                mensaje = "ERROR: Una de las columnas ingresadas por el usuario no se encuentra dentro" +
                         "de la tabla.";
                 System.out.println(mensaje);
                 return mensaje;
             }
         }
-        return "debug";
+        return mensaje;
     }
 
     /**
@@ -294,9 +309,9 @@ public class InsertInto {
             else if (pointerType.contains("char")) {
 
                 /*
-                 Se verifica que la cantidad de chars que puede ingresar el usuario en la columna
-                 no sobrepase el valor ingresado por el usuario.
-                */
+                 * Se verifica que la cantidad de chars que puede ingresar el usuario en la columna
+                 * no sobrepase el valor ingresado por el usuario.
+                 */
 
                 Integer tamano = pointerType.length();
                 String numeroString = pointerType.substring(5,tamano-1);
@@ -403,7 +418,7 @@ public class InsertInto {
 
             // Se hace una nueva linea con los valores ingresados.
             for (int i = 0; i<valores.size();i++){
-                lineaValores = lineaValores + "," + valores.get(i);
+                lineaValores = lineaValores + "," + String.valueOf(valores.get(i));
             }
 
             // Se realiza un append de la linea al archivo de texto valores.txt
@@ -436,7 +451,7 @@ public class InsertInto {
 
             // Se hace una nueva linea con los valores ingresados.
             for (int i = 0; i<valores.size();i++){
-                lineaValores = lineaValores + "," + valores.get(i);
+                lineaValores = lineaValores + "," + String.valueOf(valores.get(i));
             }
 
             // Los demas valores de la tabla se rellenan con nulo.
@@ -461,11 +476,29 @@ public class InsertInto {
                     "\\" + nombreTabla + "\\" + "valores.txt", true));
 
             String lineaValores = "";
+            Stack stackValores = new Stack();
 
-            for (int i = 0; i<cantColumns; i++){
+            /*
+             * Creamos un nuevo stack con todos los valores a escribir, para facilitar la construccion de
+             * la linea que vamos a escribir.
+             */
 
+            Integer cantValores = valores.size();
+
+            for (int j = 0; j < cantValores; j++){
+                String stackValor = valores.get(valores.size());
+                stackValores.push(stackValor);
+                valores.remove(valores.size());
             }
 
+            // Construccion de la nueva linea
+            for (int i = 0; i<cantColumns; i++){
+                if (posiciones.contains(i)){
+                    lineaValores = lineaValores + "," + String.valueOf(stackValores.pop());
+                } else {
+                    lineaValores = lineaValores + "," + String.valueOf("null");
+                }
+            }
 
             writer.append(lineaValores);
             writer.newLine();
