@@ -1533,6 +1533,182 @@ public class Funciones {
         }
         return mensaje;
     }
+    
+     /**
+     * author Joice Miranda
+     * @param op1 operando 1
+     * @param op2 operando 2
+     * @param sym simbolo del operador
+     * @return true si cumple la condicion, false si no
+     */
+    public boolean cumpleCondNum (float op1, float op2, String sym){
+        switch (sym){
+            case "<":
+                if (op1 < op2){
+                    return true;
+                }
+                else return false;
+            case ">":
+                if (op1 > op2){
+                    return true;
+                }
+                else return false;
+            case "<=":
+                if (op1 <= op2){
+                    return true;
+                }
+                else return false;
+
+            case ">=":
+                if (op1 >= op2){
+                    return true;
+                }
+                else return false;
+
+            case "=":
+                if (op1 == op2){
+                    return true;
+                }
+                else return false;
+
+        }
+        return false;
+
+    }
+
+    /**
+     * author Joice Miranda
+     * @param op1 operador 1
+     * @param op2 operador 2
+     * @param sym simbolo de la operacion
+     * @return true si cumple la condicion, false si no
+     */
+    public boolean cumpleCondString (String op1, String op2, String sym){
+        switch (sym){
+            case "=":
+                if (op1 == op2){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            case "!=":
+                if (op1 != op2){
+                    return true;
+                }
+                else{
+                    return false;
+                }
+        }
+        return false;
+    }
+
+    /**
+     * author Joice Miranda
+     * @param nombreBD nombre de la base de datos
+     * @param nombreTabla nombre de la tabla
+     * @param nombrecolumna nombre de la columna que tendra el update
+     * @param valorNuevo el nuevo valor para la columna
+     * @param nombreColumnaCond nombre de la columna que tiene la condicion
+     * @return mensaje de error o exito
+     */
+    public String UpdateCond (String nombreBD, String nombreTabla, String nombrecolumna, String valorNuevo, String nombreColumnaCond){
+        String mensaje="";
+        boolean existe=false;
+        boolean condExist=false;
+        int index=0;
+        int indexCond =0;
+        int cont=0;
+        File input = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\valores.txt");
+        File temp = new File("data\\" + nombreBD + "\\" + nombreTabla + "\\temporal.txt");
+
+        //Revisa si la columna ingresada existe
+        ArrayList<String []> columnasExistentes= AllColumnsAndTypes(nombreTabla,nombreBD);
+        for (int j=0; j<columnasExistentes.size();j++){
+            String [] unidad= columnasExistentes.get(j);
+            if (unidad[0].toLowerCase().equals(nombrecolumna.toLowerCase())){
+                existe = true;
+            }
+        }
+        if(existe==false){
+            mensaje="ERROR. No existe la columna "+nombrecolumna+" en la tabla "+nombreTabla;
+            return mensaje;
+        }
+
+        //Revisa si la columna DE LA CONDICION existe
+        ArrayList<String []> columnasCond= AllColumnsAndTypes(nombreTabla,nombreBD);
+        for (int j=0; j<columnasExistentes.size();j++){
+            String [] unidad1= columnasExistentes.get(j);
+            if (unidad1[0].toLowerCase().equals(nombrecolumna.toLowerCase())){
+                condExist = true;
+            }
+        }
+        if(condExist==false){
+            mensaje="ERROR. No existe la columna "+nombrecolumna+" en la tabla "+nombreTabla;
+            return mensaje;
+        }
+
+
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(input));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(temp));
+            //obtener el indice de la columna ingresada
+            String primerLinea= br.readLine();
+            String [] columnas= primerLinea.split(",");
+            for (int i=0;i<columnas.length;i++){
+                if (columnas[i].equals(nombrecolumna)){
+                    index=i;
+                }
+
+                if (columnas[i].equals(nombreColumnaCond)){
+                    indexCond=i;
+                }
+            }
+
+
+            String current="";
+            while ((current = br.readLine())!=null){
+                String lineaJunta="";
+                String[] parts= current.split(",");
+
+                //Toma la condicion y la divide en op1, op2, y sym
+                String [] condicion = parts[indexCond].split(" ");
+                boolean cumple=false;
+                if (condicion[1].equals("<") ||condicion[1].equals(">") || condicion[1].equals("<=") || condicion[1].equals(">=") ||condicion[1].equals("!=") || condicion[1].equals("=") ){
+                    cumple = cumpleCondNum(Float.parseFloat(condicion[0]), Float.parseFloat(condicion[2]), condicion[1]);
+                }
+
+                else if (condicion[1].equals("=") ||condicion[1].equals("!=") ){
+                    cumple=cumpleCondString(condicion[0], condicion[1], condicion[2]);
+                }
+                
+                else{
+                    return "Hubo un error en la condicion " + parts[indexCond];
+                }
+                
+                if (cumple==true){
+                    parts[index]=valorNuevo;
+                    for (int a=0;a<parts.length;a++){
+                        lineaJunta =lineaJunta+","+parts[a];
+                    }
+                    cont=cont+1;
+                    bw.write(lineaJunta +System.getProperty("line.separator"));
+                }
+                else{
+                    bw.write(current +System.getProperty("line.separator"));
+                }
+                
+                
+
+            }
+            mensaje="UPDATE "+ cont+" con éxito";
+        }
+        catch (IOException e){
+            mensaje="ERROR. No existe la tabla "+nombreTabla+" en la base de datos "+nombreBD;
+        }
+        return mensaje;
+    }
+
 
 }
 
