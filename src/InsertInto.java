@@ -41,7 +41,7 @@ public class InsertInto {
              */
             Integer cantValores = valores.size();
 
-            ArrayList<String []> columnasTipos = TodasColumnasYTipos(nombreTabla, dbActual);
+            ArrayList<String []> columnasTipos = TodasColumnasYTipos( dbActual, nombreTabla);
             cantColumnas = columnasTipos.size();
 
             if (cantValores <= cantColumnas){
